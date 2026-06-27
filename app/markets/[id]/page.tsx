@@ -2,10 +2,17 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { priceYes } from '@/lib/lmsr'
+import { displayNameFromEmail } from '@/lib/display-name'
 import Nav from '@/app/components/Nav'
 import TradePanel from './TradePanel'
 import ResolvePanel from './ResolvePanel'
 import PriceChart, { type PricePoint } from './PriceChart'
+
+type MarketPosition = {
+  yes_shares: number | string
+  no_shares: number | string
+  users: { email: string | null; display_name: string | null } | Array<{ email: string | null; display_name: string | null }> | null
+}
 
 export default async function MarketPage({
   params,
@@ -21,7 +28,7 @@ export default async function MarketPage({
 
   if (!user) redirect('/login')
 
-  const [{ data: market }, { data: profile }, { data: trades }] = await Promise.all([
+  const [{ data: market }, { data: profile }, { data: trades }, { data: positions }] = await Promise.all([
     supabase
       .from('markets')
       .select('id, question, description, closes_at, status, b, q_yes, q_no, resolution, resolved_at, created_at')
@@ -37,6 +44,10 @@ export default async function MarketPage({
       .select('price_after, created_at')
       .eq('market_id', id)
       .order('created_at', { ascending: true }),
+    supabase
+      .from('positions')
+      .select('yes_shares, no_shares, users(email, display_name)')
+      .eq('market_id', id),
   ])
 
   if (!market) {
@@ -64,9 +75,21 @@ export default async function MarketPage({
   const pricePoints: PricePoint[] = [
     { time: market.created_at, price: 0.5 },
     ...tradePoints,
-    // If no trades have been made, extend a flat line to now so the chart isn't a single dot.
     ...(tradePoints.length === 0 ? [{ time: new Date().toISOString(), price: 0.5 }] : []),
   ]
+
+  const topTraders = ((positions ?? []) as MarketPosition[])
+    .map((position) => {
+      const relatedUser = Array.isArray(position.users) ? position.users[0] : position.users
+      return {
+        displayName: relatedUser?.display_name ?? displayNameFromEmail(relatedUser?.email),
+        totalShares: Number(position.yes_shares) + Number(position.no_shares),
+      }
+    })
+    .filter((p) => p.totalShares > 0)
+    .sort((a, b) => b.totalShares - a.totalShares)
+    .slice(0, 3)
+
   const isResolved = market.status === 'resolved'
 
   const yesProb = priceYes(Number(market.q_yes), Number(market.q_no), Number(market.b))
@@ -153,6 +176,21 @@ export default async function MarketPage({
             )}
 
             {isAdmin && !isResolved && <ResolvePanel marketId={market.id} />}
+
+            {topTraders.length > 0 && (
+              <section className="border border-line-strong p-5">
+                <p className="eyebrow mb-4">Top traders</p>
+                <ol className="space-y-2">
+                  {topTraders.map((trader, i) => (
+                    <li key={i} className="flex items-center justify-between gap-2 text-sm">
+                      <span className="font-numeric text-ink-faint">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="min-w-0 flex-1 truncate font-medium text-ink">{trader.displayName}</span>
+                      <span className="font-numeric shrink-0 text-xs text-ink-soft">{trader.totalShares.toFixed(0)} shares</span>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
           </aside>
         </div>
       </main>

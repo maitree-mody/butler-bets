@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Nav from '@/app/components/Nav'
+import { displayNameFromEmail } from '@/lib/display-name'
 
 const STARTING_CROWNS = 1000
 
@@ -14,7 +15,7 @@ export default async function LeaderboardPage() {
 
   const { data: users, error } = await supabase
     .from('users')
-    .select('id, email, crowns')
+    .select('id, email, crowns, display_name')
     .order('crowns', { ascending: false })
 
   const myRank = users ? users.findIndex((entry) => entry.id === user.id) + 1 : 0
@@ -74,6 +75,7 @@ export default async function LeaderboardPage() {
                     const rank = index + 1
                     const isMe = entry.id === user.id
                     const profit = Number(entry.crowns) - STARTING_CROWNS
+                    const name = (entry as { display_name?: string | null }).display_name ?? displayNameFromEmail(entry.email)
 
                     return (
                       <tr key={entry.id} className={`border-b last:border-0 ${isMe ? 'bg-accent-soft' : 'transition-colors hover:bg-surface'}`}>
@@ -83,7 +85,7 @@ export default async function LeaderboardPage() {
                         <td className="px-2 py-4 sm:px-4">
                           <div className="flex min-w-0 items-center gap-2">
                             <span className={`min-w-0 truncate text-xs sm:text-sm ${isMe ? 'font-bold text-accent' : 'font-medium text-ink'}`}>
-                              {entry.email ?? '—'}
+                              {name}
                             </span>
                             {isMe && <span className="shrink-0 text-[0.6rem] font-bold uppercase tracking-[0.1em] text-accent">You</span>}
                           </div>
