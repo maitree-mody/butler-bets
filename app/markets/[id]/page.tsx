@@ -29,7 +29,7 @@ export default async function MarketPage({
       .single(),
     supabase
       .from('users')
-      .select('is_admin')
+      .select('is_admin, crowns')
       .eq('id', user.id)
       .single(),
     supabase
@@ -43,17 +43,19 @@ export default async function MarketPage({
     return (
       <>
         <Nav email={user.email ?? ''} />
-        <main className="mx-auto max-w-5xl px-8 py-16 text-center">
-          <p className="text-lg text-[#71717A]">Market not found.</p>
-          <Link href="/" className="mt-4 inline-block text-sm text-[#4A86C5] underline underline-offset-2">
-            Back to markets
+        <main className="page-shell py-20 text-center">
+          <p className="font-display text-3xl font-medium">Market not found.</p>
+          <Link href="/" className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4">
+            Back to market board
           </Link>
         </main>
       </>
     )
   }
 
-  const isAdmin = (profile as { is_admin?: boolean } | null)?.is_admin ?? false
+  const userProfile = profile as { is_admin?: boolean; crowns?: number } | null
+  const isAdmin = userProfile?.is_admin ?? false
+  const availableBalance = Number(userProfile?.crowns ?? 0)
 
   const tradePoints: PricePoint[] = (trades ?? []).map(t => ({
     time: t.created_at,
@@ -70,6 +72,7 @@ export default async function MarketPage({
   const yesProb = priceYes(Number(market.q_yes), Number(market.q_no), Number(market.b))
   const yesPct = Math.round(yesProb * 100)
   const noPct = 100 - yesPct
+  const volume = Number(market.q_yes) + Number(market.q_no)
   const closeDate = new Date(market.closes_at).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
@@ -79,84 +82,58 @@ export default async function MarketPage({
   return (
     <>
       <Nav email={user.email ?? ''} />
-      <main className="mx-auto max-w-5xl px-8 py-16">
-        <Link href="/" className="mb-10 inline-block text-sm font-medium text-[#71717A] transition-colors hover:text-[#18181B]">
-          ← Markets
+      <main className="page-shell py-8 sm:py-10">
+        <Link href="/" className="inline-flex min-h-11 items-center text-xs font-semibold text-ink-soft underline decoration-transparent underline-offset-4 transition-colors hover:text-ink hover:decoration-line-strong">
+          ← Back to market board
         </Link>
 
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_360px]">
-          {/* Left: market info */}
-          <div>
-            <div className="mb-6 flex items-center gap-3">
-              <span
-                className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-                  market.status === 'open'
-                    ? 'border-[#4A86C5]/30 text-[#4A86C5]'
-                    : market.status === 'closed'
-                      ? 'border-amber-300 text-amber-600'
-                      : 'border-[#EAE7E1] text-[#71717A]'
-                }`}
-              >
-                {market.status}
-              </span>
-              <span className="text-sm text-[#71717A]">Closes {closeDate}</span>
-            </div>
+        <header className="mt-5 border-b border-line-strong pb-7 sm:pb-9">
+          <div className="mb-4 flex flex-wrap items-center gap-3 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-ink-faint">
+            <span className={market.status === 'open' ? 'text-accent' : 'text-ink-faint'}>{market.status}</span>
+            <span aria-hidden="true">/</span>
+            <span>Campus market</span>
+            <span aria-hidden="true">/</span>
+            <span>Expires {closeDate}</span>
+          </div>
+          <h1 className="page-title max-w-4xl">{market.question}</h1>
+          {market.description && <p className="mt-5 max-w-3xl text-base leading-7 text-ink-soft sm:text-[1.0625rem]">{market.description}</p>}
+        </header>
 
-            <h1 className="font-display mb-6 text-5xl leading-tight text-[#18181B]">
-              {market.question}
-            </h1>
-
-            {market.description && (
-              <p className="mb-10 text-base leading-relaxed text-[#71717A]">{market.description}</p>
-            )}
-
-            <div className="mb-6 flex items-start gap-16">
-              <div>
-                <p className="text-7xl font-bold text-[#4A86C5]">{yesPct}%</p>
-                <p className="mt-2 text-sm font-medium text-[#71717A]">YES</p>
+        <div className="grid gap-8 py-7 lg:grid-cols-[minmax(0,1fr)_21.5rem] lg:gap-10">
+          <div className="min-w-0">
+            <section aria-label="Current market prices" className="grid grid-cols-2 border-y border-line-strong sm:grid-cols-4">
+              <div className="border-b border-r p-4 sm:border-b-0 sm:p-5">
+                <p className="eyebrow text-accent">Yes price</p>
+                <p className="font-numeric mt-2 text-[2.6rem] font-semibold leading-none tracking-[-0.055em] text-accent sm:text-5xl">{yesPct}¢</p>
               </div>
-              <div className="mt-4 text-3xl text-[#EAE7E1]">/</div>
-              <div>
-                <p className="text-7xl font-bold text-[#C0413B]">{noPct}%</p>
-                <p className="mt-2 text-sm font-medium text-[#71717A]">NO</p>
+              <div className="border-b p-4 sm:border-b-0 sm:border-r sm:p-5">
+                <p className="eyebrow">No price</p>
+                <p className="font-numeric mt-2 text-[2.6rem] font-semibold leading-none tracking-[-0.055em] sm:text-5xl">{noPct}¢</p>
               </div>
-            </div>
-
-            <div className="mb-10 h-1.5 overflow-hidden rounded-full bg-[#EAE7E1]">
-              <div
-                className="h-full rounded-full bg-[#4A86C5] transition-all"
-                style={{ width: `${yesPct}%` }}
-              />
-            </div>
-
-            <div className="rounded-lg border border-[#EAE7E1] bg-white p-4 text-xs text-[#71717A]">
-              <span className="mr-4">q_yes: {market.q_yes}</span>
-              <span className="mr-4">q_no: {market.q_no}</span>
-              <span>b: {market.b}</span>
-            </div>
+              <div className="border-r p-4 sm:p-5">
+                <p className="eyebrow">Volume</p>
+                <p className="font-numeric mt-3 text-lg font-semibold">{volume.toLocaleString()}</p>
+                <p className="mt-1 text-xs text-ink-faint">shares traded</p>
+              </div>
+              <div className="p-4 sm:p-5">
+                <p className="eyebrow">Liquidity</p>
+                <p className="font-numeric mt-3 text-lg font-semibold">{Number(market.b).toLocaleString()}</p>
+                <p className="mt-1 text-xs text-ink-faint">market depth</p>
+              </div>
+            </section>
 
             <PriceChart points={pricePoints} />
           </div>
 
-          {/* Right: trade / resolved */}
-          <div className="flex flex-col gap-4">
+          <aside className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
             {isResolved ? (
-              <div
-                className={`rounded-2xl border p-10 text-center ${
-                  market.resolution === 'yes'
-                    ? 'border-[#4A86C5]/20 bg-white'
-                    : 'border-[#C0413B]/20 bg-white'
-                }`}
-              >
-                <p
-                  className={`font-display text-4xl ${
-                    market.resolution === 'yes' ? 'text-[#4A86C5]' : 'text-[#C0413B]'
-                  }`}
-                >
-                  Resolved: {market.resolution?.toUpperCase()}
+              <section className="border border-line-strong bg-surface-strong p-6">
+                <p className="eyebrow">Final result</p>
+                <p className={`font-display mt-3 text-4xl font-medium tracking-[-0.04em] ${market.resolution === 'yes' ? 'text-accent' : 'text-ink'}`}>
+                  {market.resolution?.toUpperCase()} won
                 </p>
                 {market.resolved_at && (
-                  <p className="mt-2 text-sm text-[#71717A]">
+                  <p className="mt-3 text-sm text-ink-soft">
                     {new Date(market.resolved_at).toLocaleDateString('en-GB', {
                       day: 'numeric',
                       month: 'long',
@@ -164,20 +141,19 @@ export default async function MarketPage({
                     })}
                   </p>
                 )}
-              </div>
+              </section>
             ) : (
               <TradePanel
                 marketId={market.id}
                 qYes={Number(market.q_yes)}
                 qNo={Number(market.q_no)}
                 b={Number(market.b)}
+                availableBalance={availableBalance}
               />
             )}
 
-            {isAdmin && !isResolved && (
-              <ResolvePanel marketId={market.id} />
-            )}
-          </div>
+            {isAdmin && !isResolved && <ResolvePanel marketId={market.id} />}
+          </aside>
         </div>
       </main>
     </>

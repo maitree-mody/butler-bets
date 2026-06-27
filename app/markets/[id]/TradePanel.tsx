@@ -10,9 +10,10 @@ interface TradePanelProps {
   qYes: number
   qNo: number
   b: number
+  availableBalance: number
 }
 
-export default function TradePanel({ marketId, qYes, qNo, b }: TradePanelProps) {
+export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }: TradePanelProps) {
   const router = useRouter()
   const [side, setSide] = useState<'yes' | 'no'>('yes')
   const [sharesInput, setSharesInput] = useState('10')
@@ -22,12 +23,16 @@ export default function TradePanel({ marketId, qYes, qNo, b }: TradePanelProps) 
 
   const shares = parseInt(sharesInput, 10)
   const validShares = !isNaN(shares) && shares > 0 ? shares : 0
-
+  const currentYesPrice = priceYes(qYes, qNo, b)
+  const currentSidePrice = side === 'yes' ? currentYesPrice : 1 - currentYesPrice
   const previewCost = validShares > 0 ? tradeCost(qYes, qNo, b, side, validShares) : 0
   const newQYes = side === 'yes' ? qYes + validShares : qYes
   const newQNo = side === 'no' ? qNo + validShares : qNo
-  const newPricePct = Math.round(priceYes(newQYes, newQNo, b) * 100)
-  const avgPrice = validShares > 0 ? previewCost / validShares : 0
+  const newYesPrice = priceYes(newQYes, newQNo, b)
+  const newSidePrice = side === 'yes' ? newYesPrice : 1 - newYesPrice
+  const estimatedPayout = validShares
+  const potentialProfit = estimatedPayout - previewCost
+  const balanceAfter = availableBalance - previewCost
 
   function handleTrade() {
     if (validShares === 0) return
@@ -47,90 +52,107 @@ export default function TradePanel({ marketId, qYes, qNo, b }: TradePanelProps) 
   }
 
   return (
-    <div className="rounded-2xl border border-[#EAE7E1] bg-white p-7">
-      <h2 className="mb-6 text-sm font-medium text-[#71717A]">Place a trade</h2>
-
-      <div className="mb-5 flex gap-2">
-        <button
-          type="button"
-          onClick={() => setSide('yes')}
-          className={`flex-1 rounded-lg py-3 text-sm font-semibold transition-all ${
-            side === 'yes'
-              ? 'bg-[#4A86C5] text-white'
-              : 'border border-[#EAE7E1] text-[#71717A] hover:border-[#4A86C5]/40 hover:text-[#4A86C5]'
-          }`}
-        >
-          YES
-        </button>
-        <button
-          type="button"
-          onClick={() => setSide('no')}
-          className={`flex-1 rounded-lg py-3 text-sm font-semibold transition-all ${
-            side === 'no'
-              ? 'bg-[#C0413B] text-white'
-              : 'border border-[#EAE7E1] text-[#71717A] hover:border-[#C0413B]/40 hover:text-[#C0413B]'
-          }`}
-        >
-          NO
-        </button>
-      </div>
-
-      <div className="mb-5">
-        <label className="mb-2 block text-sm font-medium text-[#18181B]" htmlFor="shares-input">
-          Shares
-        </label>
-        <input
-          id="shares-input"
-          type="number"
-          min={1}
-          step={1}
-          value={sharesInput}
-          onChange={(e) => setSharesInput(e.target.value)}
-          className="w-full rounded-lg border border-[#EAE7E1] bg-[#FBFAF8] px-4 py-3 text-sm text-[#18181B] placeholder:text-[#71717A] focus:border-[#4A86C5] focus:outline-none focus:ring-2 focus:ring-[#4A86C5]/15"
-        />
-      </div>
-
-      {validShares > 0 && (
-        <div className="mb-5 rounded-xl bg-[#FBFAF8] p-4 text-sm">
-          <div className="flex justify-between">
-            <span className="text-[#71717A]">Cost</span>
-            <span className="font-medium text-[#18181B]">~{previewCost.toFixed(2)} crowns</span>
-          </div>
-          <div className="mt-2 flex justify-between">
-            <span className="text-[#71717A]">New price</span>
-            <span className="font-medium text-[#18181B]">{newPricePct}% YES</span>
-          </div>
-          <div className="mt-2 flex justify-between">
-            <span className="text-[#71717A]">Avg per share</span>
-            <span className="font-medium text-[#18181B]">{avgPrice.toFixed(4)} crowns</span>
-          </div>
-          <p className="mt-3 text-xs text-[#71717A]">
-            Final cost may differ slightly as the price moves.
-          </p>
+    <section className="border border-line-strong bg-surface-strong" aria-labelledby="trade-ticket-title">
+      <div className="flex items-center justify-between border-b px-4 py-3 sm:px-5">
+        <div>
+          <p className="eyebrow">Order entry</p>
+          <h2 id="trade-ticket-title" className="mt-1 text-base font-semibold tracking-[-0.02em]">Trade ticket</h2>
         </div>
-      )}
+        <div className="text-right">
+          <p className="eyebrow">Available</p>
+          <p className="font-numeric mt-1 text-sm font-semibold">{availableBalance.toFixed(2)}</p>
+        </div>
+      </div>
 
-      <button
-        type="button"
-        onClick={handleTrade}
-        disabled={isPending || validShares === 0}
-        className={`w-full rounded-lg py-3 text-sm font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40 ${
-          side === 'yes' ? 'bg-[#4A86C5]' : 'bg-[#C0413B]'
-        } hover:opacity-90`}
-      >
-        {isPending ? 'Processing…' : `Buy ${side.toUpperCase()}`}
-      </button>
+      <div className="p-4 sm:p-5">
+        <fieldset>
+          <legend className="eyebrow mb-2">Position</legend>
+          <div className="grid grid-cols-2 border border-line-strong">
+            <button
+              type="button"
+              aria-pressed={side === 'yes'}
+              onClick={() => setSide('yes')}
+              className={`min-h-12 border-r px-3 text-left transition-colors ${
+                side === 'yes' ? 'bg-accent text-white' : 'bg-surface text-ink hover:bg-accent-soft'
+              }`}
+            >
+              <span className="block text-[0.6875rem] font-bold uppercase tracking-[0.1em]">Yes</span>
+              <span className="font-numeric mt-0.5 block text-lg font-semibold">{Math.round(currentYesPrice * 100)}¢</span>
+            </button>
+            <button
+              type="button"
+              aria-pressed={side === 'no'}
+              onClick={() => setSide('no')}
+              className={`min-h-12 px-3 text-left transition-colors ${
+                side === 'no' ? 'bg-ink text-white' : 'bg-surface text-ink hover:bg-surface-muted'
+              }`}
+            >
+              <span className="block text-[0.6875rem] font-bold uppercase tracking-[0.1em]">No</span>
+              <span className="font-numeric mt-0.5 block text-lg font-semibold">{Math.round((1 - currentYesPrice) * 100)}¢</span>
+            </button>
+          </div>
+        </fieldset>
 
-      {result && (
-        <p className="mt-4 rounded-xl bg-[#2E7D5B]/8 px-4 py-3 text-sm text-[#2E7D5B]">
-          {result}
-        </p>
-      )}
-      {error && (
-        <p className="mt-4 rounded-xl bg-[#C0413B]/8 px-4 py-3 text-sm text-[#C0413B]">
-          {error}
-        </p>
-      )}
-    </div>
+        <div className="mt-5">
+          <label className="eyebrow mb-2 block" htmlFor="shares-input">Quantity</label>
+          <div className="flex min-h-12 border border-line-strong bg-surface focus-within:border-accent">
+            <input
+              id="shares-input"
+              type="number"
+              min={1}
+              step={1}
+              inputMode="numeric"
+              value={sharesInput}
+              onChange={(event) => setSharesInput(event.target.value)}
+              className="font-numeric min-w-0 flex-1 bg-transparent px-3 text-lg font-semibold text-ink outline-none"
+            />
+            <span className="flex items-center border-l px-3 text-xs font-medium text-ink-faint">shares</span>
+          </div>
+        </div>
+
+        <dl className="font-numeric mt-5 divide-y border-y text-sm">
+          <div className="flex items-center justify-between py-2.5">
+            <dt className="text-ink-soft">Selected side</dt>
+            <dd className="font-semibold">{side.toUpperCase()} @ {Math.round(currentSidePrice * 100)}¢</dd>
+          </div>
+          <div className="flex items-center justify-between py-2.5">
+            <dt className="text-ink-soft">Estimated cost</dt>
+            <dd className="font-semibold">{previewCost.toFixed(2)} crowns</dd>
+          </div>
+          <div className="flex items-center justify-between py-2.5">
+            <dt className="text-ink-soft">Price after order</dt>
+            <dd className="font-semibold">{Math.round(newSidePrice * 100)}¢</dd>
+          </div>
+          <div className="flex items-center justify-between py-2.5">
+            <dt className="text-ink-soft">Payout if correct</dt>
+            <dd className="font-semibold">{estimatedPayout.toFixed(2)} crowns</dd>
+          </div>
+          <div className="flex items-center justify-between py-2.5">
+            <dt className="text-ink-soft">Potential profit</dt>
+            <dd className="font-semibold text-accent">+{Math.max(0, potentialProfit).toFixed(2)}</dd>
+          </div>
+          <div className="flex items-center justify-between py-2.5">
+            <dt className="text-ink-soft">Balance after</dt>
+            <dd className={`font-semibold ${balanceAfter < 0 ? 'text-danger' : 'text-ink'}`}>{balanceAfter.toFixed(2)}</dd>
+          </div>
+        </dl>
+
+        <button
+          type="button"
+          onClick={handleTrade}
+          disabled={isPending || validShares === 0}
+          className={`mt-5 min-h-12 w-full px-4 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-faint ${
+            side === 'yes' ? 'bg-accent text-white hover:bg-accent-hover' : 'bg-ink text-white hover:bg-accent'
+          }`}
+        >
+          {isPending ? 'Sending order…' : `Buy ${side.toUpperCase()} · ${previewCost.toFixed(2)}`}
+        </button>
+
+        <div aria-live="polite">
+          {result && <p className="mt-4 border-l-2 border-accent bg-accent-soft px-3 py-2.5 text-sm text-accent">{result}</p>}
+          {error && <p className="mt-4 border-l-2 border-danger bg-danger-soft px-3 py-2.5 text-sm text-danger">{error}</p>}
+        </div>
+      </div>
+    </section>
   )
 }

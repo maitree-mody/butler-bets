@@ -17,98 +17,118 @@ export default async function Home() {
     .select('id, question, closes_at, status, b, q_yes, q_no')
     .order('created_at', { ascending: false })
 
+  const openMarkets = markets?.filter((market) => market.status === 'open').length ?? 0
+
   return (
     <>
       <Nav email={user.email ?? ''} />
-      <main className="mx-auto max-w-5xl px-8 py-16">
-        <div className="mb-14 flex items-end justify-between">
-          <div>
-            <h1 className="font-display text-7xl leading-none text-[#18181B]">Markets</h1>
-            <p className="mt-4 text-base text-[#71717A]">
-              {markets ? `${markets.length} open prediction${markets.length !== 1 ? 's' : ''}` : 'Play-money predictions'}
-            </p>
-          </div>
-          <Link
-            href="/markets/new"
-            className="rounded-xl bg-[#4A86C5] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          >
-            + New market
-          </Link>
-        </div>
+      <main>
+        <section className="border-b">
+          <div className="page-shell grid gap-10 py-10 sm:py-14 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end">
+            <div className="max-w-3xl">
+              <p className="eyebrow mb-5">Columbia&apos;s prediction exchange</p>
+              <h1 className="display-title max-w-3xl">Trade the questions shaping campus.</h1>
+              <p className="mt-5 max-w-2xl text-[1.0625rem] leading-7 text-ink-soft sm:text-lg">
+                Put play-money behind your point of view. Prices move with every trade; the market keeps the score.
+              </p>
+            </div>
 
-        {error ? (
-          <p className="text-sm text-[#C0413B]">Failed to load markets: {error.message}</p>
-        ) : markets && markets.length > 0 ? (
-          <ul className="flex flex-col gap-4">
-            {markets.map((m) => {
-              const yesProb = priceYes(Number(m.q_yes), Number(m.q_no), Number(m.b))
-              const yesPct = Math.round(yesProb * 100)
-              const noPct = 100 - yesPct
-              const closeDate = new Date(m.closes_at).toLocaleDateString('en-GB', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })
-              return (
-                <li key={m.id}>
-                  <Link
-                    href={`/markets/${m.id}`}
-                    className="group flex items-stretch rounded-2xl border border-[#EAE7E1] bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#4A86C5]/30 hover:shadow-md"
-                  >
-                    {/* YES% bar on left edge */}
-                    <div
-                      className="w-1.5 shrink-0 rounded-l-2xl bg-[#4A86C5]"
-                      style={{ opacity: 0.3 + yesProb * 0.7 }}
-                    />
-                    <div className="flex flex-1 items-center justify-between gap-10 px-8 py-7">
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-3 flex items-center gap-2.5">
-                          <span
-                            className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-                              m.status === 'open'
-                                ? 'border-[#4A86C5]/30 text-[#4A86C5]'
-                                : m.status === 'closed'
-                                  ? 'border-amber-300 text-amber-600'
-                                  : 'border-[#EAE7E1] text-[#71717A]'
-                            }`}
-                          >
-                            {m.status}
-                          </span>
-                          <span className="text-xs text-[#71717A]">Closes {closeDate}</span>
-                        </div>
-                        <p className="font-display mb-4 text-xl leading-snug text-[#18181B]">
-                          {m.question}
-                        </p>
-                        <div className="h-1 overflow-hidden rounded-full bg-[#EAE7E1]">
-                          <div
-                            className="h-full rounded-full bg-[#4A86C5] transition-all"
-                            style={{ width: `${yesPct}%` }}
-                          />
-                        </div>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-5xl font-bold leading-none text-[#4A86C5]">{yesPct}%</p>
-                        <p className="mt-1.5 text-xs font-semibold uppercase tracking-widest text-[#71717A]">YES</p>
-                        <p className="mt-3 text-xl font-bold leading-none text-[#C0413B]">{noPct}%</p>
-                        <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-[#71717A]">NO</p>
-                      </div>
-                    </div>
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        ) : (
-          <div className="rounded-2xl border border-[#EAE7E1] bg-white p-16 text-center">
-            <p className="text-[#71717A]">No markets yet.</p>
-            <Link
-              href="/markets/new"
-              className="mt-3 inline-block text-sm font-semibold text-[#4A86C5] underline underline-offset-2"
-            >
-              Create the first one
-            </Link>
+            <div className="border-t border-line-strong pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+              <div className="font-numeric flex items-end justify-between">
+                <div>
+                  <p className="eyebrow">Market board</p>
+                  <p className="mt-2 text-3xl font-semibold tracking-[-0.04em]">{openMarkets}</p>
+                  <p className="text-xs text-ink-faint">open now</p>
+                </div>
+                <Link
+                  href="/markets/new"
+                  className="inline-flex min-h-11 items-center justify-center bg-ink px-4 text-sm font-semibold text-surface-strong transition-colors hover:bg-accent"
+                >
+                  Create market
+                  <span aria-hidden="true" className="ml-3 text-base">↗</span>
+                </Link>
+              </div>
+            </div>
           </div>
-        )}
+        </section>
+
+        <section className="page-shell py-8 sm:py-10">
+          <div className="mb-4 flex items-end justify-between border-b border-line-strong pb-3">
+            <div>
+              <p className="eyebrow">Live board</p>
+              <h2 className="font-display mt-2 text-2xl font-medium tracking-[-0.025em] sm:text-3xl">All markets</h2>
+            </div>
+            <p className="font-numeric text-xs text-ink-faint">YES / NO quotes</p>
+          </div>
+
+          {error ? (
+            <div className="border-l-2 border-danger bg-danger-soft px-4 py-3 text-sm text-danger" role="alert">
+              Failed to load markets: {error.message}
+            </div>
+          ) : markets && markets.length > 0 ? (
+            <ul className="border-b border-line-strong">
+              {markets.map((market) => {
+                const yesProb = priceYes(Number(market.q_yes), Number(market.q_no), Number(market.b))
+                const yesPct = Math.round(yesProb * 100)
+                const noPct = 100 - yesPct
+                const volume = Number(market.q_yes) + Number(market.q_no)
+                const closeDate = new Date(market.closes_at).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
+
+                return (
+                  <li key={market.id} className="border-t border-line">
+                    <Link
+                      href={`/markets/${market.id}`}
+                      className="group grid min-h-36 gap-5 bg-transparent py-5 transition-colors hover:bg-surface sm:px-4 md:grid-cols-[minmax(0,1fr)_18rem] md:items-center"
+                    >
+                      <div className="min-w-0">
+                        <div className="mb-3 flex items-center gap-3 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-ink-faint">
+                          <span className={market.status === 'open' ? 'text-accent' : 'text-ink-faint'}>{market.status}</span>
+                          <span aria-hidden="true">/</span>
+                          <span>Campus</span>
+                        </div>
+                        <h3 className="font-display max-w-2xl text-[1.3rem] font-medium leading-[1.25] tracking-[-0.02em] text-ink sm:text-[1.45rem]">
+                          {market.question}
+                        </h3>
+                        <div className="font-numeric mt-4 flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-faint">
+                          <span>Expires {closeDate}</span>
+                          <span>{volume.toLocaleString()} shares traded</span>
+                          <span>Liquidity {Number(market.b).toLocaleString()}</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-[1fr_1fr_auto] items-stretch border border-line-strong bg-surface-strong">
+                        <div className="border-r px-3 py-3 sm:px-4">
+                          <p className="eyebrow text-accent">Yes</p>
+                          <p className="font-numeric mt-2 text-2xl font-semibold tracking-[-0.04em] text-accent">{yesPct}¢</p>
+                        </div>
+                        <div className="border-r px-3 py-3 sm:px-4">
+                          <p className="eyebrow">No</p>
+                          <p className="font-numeric mt-2 text-2xl font-semibold tracking-[-0.04em] text-ink">{noPct}¢</p>
+                        </div>
+                        <div className="flex min-w-12 items-center justify-center px-3 text-ink transition-colors group-hover:bg-ink group-hover:text-surface-strong">
+                          <span className="sr-only">Open market</span>
+                          <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
+                        </div>
+                      </div>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <div className="border-y border-line-strong py-16 text-center">
+              <p className="font-display text-2xl">The board is quiet.</p>
+              <p className="mt-2 text-sm text-ink-soft">Create the first market and set the opening odds.</p>
+              <Link href="/markets/new" className="mt-5 inline-block min-h-11 py-3 text-sm font-semibold text-accent underline underline-offset-4">
+                Create a market →
+              </Link>
+            </div>
+          )}
+        </section>
       </main>
     </>
   )
