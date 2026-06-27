@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { priceYes } from '@/lib/lmsr'
+import TradePanel from './TradePanel'
 
 export default async function MarketPage({
   params,
@@ -81,11 +82,18 @@ export default async function MarketPage({
         <span>Closes {closeDate}</span>
       </div>
 
-      <div className="rounded-md bg-gray-50 p-3 text-xs text-gray-400">
+      <div className="mb-6 rounded-md bg-gray-50 p-3 text-xs text-gray-400">
         <span className="mr-4">q_yes: {market.q_yes}</span>
         <span className="mr-4">q_no: {market.q_no}</span>
         <span>b: {market.b}</span>
       </div>
+
+      <TradePanel
+        marketId={market.id}
+        qYes={Number(market.q_yes)}
+        qNo={Number(market.q_no)}
+        b={Number(market.b)}
+      />
     </main>
   )
 }
