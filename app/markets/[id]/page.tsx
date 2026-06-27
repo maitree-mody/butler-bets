@@ -5,6 +5,7 @@ import { priceYes } from '@/lib/lmsr'
 import Nav from '@/app/components/Nav'
 import TradePanel from './TradePanel'
 import ResolvePanel from './ResolvePanel'
+import PriceChart, { type PricePoint } from './PriceChart'
 
 export default async function MarketPage({
   params,
@@ -20,10 +21,10 @@ export default async function MarketPage({
 
   if (!user) redirect('/login')
 
-  const [{ data: market }, { data: profile }] = await Promise.all([
+  const [{ data: market }, { data: profile }, { data: trades }] = await Promise.all([
     supabase
       .from('markets')
-      .select('id, question, description, closes_at, status, b, q_yes, q_no, resolution, resolved_at')
+      .select('id, question, description, closes_at, status, b, q_yes, q_no, resolution, resolved_at, created_at')
       .eq('id', id)
       .single(),
     supabase
@@ -31,6 +32,11 @@ export default async function MarketPage({
       .select('is_admin')
       .eq('id', user.id)
       .single(),
+    supabase
+      .from('trades')
+      .select('price_after, created_at')
+      .eq('market_id', id)
+      .order('created_at', { ascending: true }),
   ])
 
   if (!market) {
@@ -48,6 +54,17 @@ export default async function MarketPage({
   }
 
   const isAdmin = (profile as { is_admin?: boolean } | null)?.is_admin ?? false
+
+  const tradePoints: PricePoint[] = (trades ?? []).map(t => ({
+    time: t.created_at,
+    price: Number(t.price_after),
+  }))
+  const pricePoints: PricePoint[] = [
+    { time: market.created_at, price: 0.5 },
+    ...tradePoints,
+    // If no trades have been made, extend a flat line to now so the chart isn't a single dot.
+    ...(tradePoints.length === 0 ? [{ time: new Date().toISOString(), price: 0.5 }] : []),
+  ]
   const isResolved = market.status === 'resolved'
 
   const yesProb = priceYes(Number(market.q_yes), Number(market.q_no), Number(market.b))
@@ -117,6 +134,8 @@ export default async function MarketPage({
               <span className="mr-4">q_no: {market.q_no}</span>
               <span>b: {market.b}</span>
             </div>
+
+            <PriceChart points={pricePoints} />
           </div>
 
           {/* Right: trade / resolved */}
