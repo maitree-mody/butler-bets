@@ -25,14 +25,14 @@ export default function ResolvePanel({ marketId }: { marketId: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
-      <p className="mb-3 text-sm font-semibold text-amber-800">Admin: resolve this market</p>
+    <div className="rounded-2xl border border-[#EAE7E1] bg-white p-6">
+      <p className="mb-4 text-xs font-medium text-[#71717A]">Admin · Resolve market</p>
       <div className="flex gap-2">
         <button
           type="button"
           onClick={() => handleResolve('yes')}
           disabled={isPending}
-          className="flex-1 rounded-lg bg-green-500 py-2 text-sm font-medium text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 rounded-lg border border-[#4A86C5]/30 py-2.5 text-sm font-semibold text-[#4A86C5] transition-all hover:bg-[#4A86C5]/5 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isPending && pendingRes === 'yes' ? 'Resolving…' : 'Resolve YES'}
         </button>
@@ -40,13 +40,15 @@ export default function ResolvePanel({ marketId }: { marketId: string }) {
           type="button"
           onClick={() => handleResolve('no')}
           disabled={isPending}
-          className="flex-1 rounded-lg bg-red-500 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 rounded-lg border border-[#C0413B]/30 py-2.5 text-sm font-semibold text-[#C0413B] transition-all hover:bg-[#C0413B]/5 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isPending && pendingRes === 'no' ? 'Resolving…' : 'Resolve NO'}
         </button>
       </div>
       {error && (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        <p className="mt-3 rounded-lg bg-[#C0413B]/8 px-4 py-3 text-sm text-[#C0413B]">
+          {error}
+        </p>
       )}
     </div>
   )
