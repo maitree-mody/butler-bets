@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { priceYes } from '@/lib/lmsr'
+import Nav from '@/app/components/Nav'
 import TradePanel from './TradePanel'
 import ResolvePanel from './ResolvePanel'
 
@@ -34,12 +35,15 @@ export default async function MarketPage({
 
   if (!market) {
     return (
-      <main className="mx-auto max-w-xl px-4 py-16 text-center">
-        <p className="text-lg text-gray-500">Market not found.</p>
-        <Link href="/" className="mt-4 inline-block text-sm text-blue-500 hover:underline">
-          Back to markets
-        </Link>
-      </main>
+      <>
+        <Nav email={user.email ?? ''} />
+        <main className="mx-auto max-w-5xl px-8 py-16 text-center">
+          <p className="text-lg text-[#71717A]">Market not found.</p>
+          <Link href="/" className="mt-4 inline-block text-sm text-[#4A86C5] underline underline-offset-2">
+            Back to markets
+          </Link>
+        </main>
+      </>
     )
   }
 
@@ -56,88 +60,107 @@ export default async function MarketPage({
   })
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-10">
-      <Link href="/" className="mb-6 inline-block text-sm text-gray-400 hover:text-gray-600">
-        ← All markets
-      </Link>
+    <>
+      <Nav email={user.email ?? ''} />
+      <main className="mx-auto max-w-5xl px-8 py-16">
+        <Link href="/" className="mb-10 inline-block text-sm font-medium text-[#71717A] transition-colors hover:text-[#18181B]">
+          ← Markets
+        </Link>
 
-      <h1 className="mb-2 text-2xl font-semibold">{market.question}</h1>
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_360px]">
+          {/* Left: market info */}
+          <div>
+            <div className="mb-6 flex items-center gap-3">
+              <span
+                className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+                  market.status === 'open'
+                    ? 'border-[#4A86C5]/30 text-[#4A86C5]'
+                    : market.status === 'closed'
+                      ? 'border-amber-300 text-amber-600'
+                      : 'border-[#EAE7E1] text-[#71717A]'
+                }`}
+              >
+                {market.status}
+              </span>
+              <span className="text-sm text-[#71717A]">Closes {closeDate}</span>
+            </div>
 
-      {market.description && (
-        <p className="mb-6 text-gray-600">{market.description}</p>
-      )}
+            <h1 className="font-display mb-6 text-5xl leading-tight text-[#18181B]">
+              {market.question}
+            </h1>
 
-      <div className="mb-6 flex gap-4">
-        <div className="flex-1 rounded-lg border border-green-200 bg-green-50 p-4 text-center">
-          <p className="text-3xl font-bold text-green-600">{yesPct}%</p>
-          <p className="mt-1 text-sm text-green-700">YES</p>
+            {market.description && (
+              <p className="mb-10 text-base leading-relaxed text-[#71717A]">{market.description}</p>
+            )}
+
+            <div className="mb-6 flex items-start gap-16">
+              <div>
+                <p className="text-7xl font-bold text-[#4A86C5]">{yesPct}%</p>
+                <p className="mt-2 text-sm font-medium text-[#71717A]">YES</p>
+              </div>
+              <div className="mt-4 text-3xl text-[#EAE7E1]">/</div>
+              <div>
+                <p className="text-7xl font-bold text-[#C0413B]">{noPct}%</p>
+                <p className="mt-2 text-sm font-medium text-[#71717A]">NO</p>
+              </div>
+            </div>
+
+            <div className="mb-10 h-1.5 overflow-hidden rounded-full bg-[#EAE7E1]">
+              <div
+                className="h-full rounded-full bg-[#4A86C5] transition-all"
+                style={{ width: `${yesPct}%` }}
+              />
+            </div>
+
+            <div className="rounded-lg border border-[#EAE7E1] bg-white p-4 text-xs text-[#71717A]">
+              <span className="mr-4">q_yes: {market.q_yes}</span>
+              <span className="mr-4">q_no: {market.q_no}</span>
+              <span>b: {market.b}</span>
+            </div>
+          </div>
+
+          {/* Right: trade / resolved */}
+          <div className="flex flex-col gap-4">
+            {isResolved ? (
+              <div
+                className={`rounded-2xl border p-10 text-center ${
+                  market.resolution === 'yes'
+                    ? 'border-[#4A86C5]/20 bg-white'
+                    : 'border-[#C0413B]/20 bg-white'
+                }`}
+              >
+                <p
+                  className={`font-display text-4xl ${
+                    market.resolution === 'yes' ? 'text-[#4A86C5]' : 'text-[#C0413B]'
+                  }`}
+                >
+                  Resolved: {market.resolution?.toUpperCase()}
+                </p>
+                {market.resolved_at && (
+                  <p className="mt-2 text-sm text-[#71717A]">
+                    {new Date(market.resolved_at).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <TradePanel
+                marketId={market.id}
+                qYes={Number(market.q_yes)}
+                qNo={Number(market.q_no)}
+                b={Number(market.b)}
+              />
+            )}
+
+            {isAdmin && !isResolved && (
+              <ResolvePanel marketId={market.id} />
+            )}
+          </div>
         </div>
-        <div className="flex-1 rounded-lg border border-red-200 bg-red-50 p-4 text-center">
-          <p className="text-3xl font-bold text-red-500">{noPct}%</p>
-          <p className="mt-1 text-sm text-red-600">NO</p>
-        </div>
-      </div>
-
-      <div className="mb-8 flex items-center gap-4 text-sm text-gray-500">
-        <span
-          className={
-            market.status === 'open'
-              ? 'font-medium text-green-500'
-              : market.status === 'closed'
-                ? 'font-medium text-yellow-500'
-                : 'font-medium text-gray-400'
-          }
-        >
-          {market.status}
-        </span>
-        <span>Closes {closeDate}</span>
-      </div>
-
-      <div className="mb-6 rounded-md bg-gray-50 p-3 text-xs text-gray-400">
-        <span className="mr-4">q_yes: {market.q_yes}</span>
-        <span className="mr-4">q_no: {market.q_no}</span>
-        <span>b: {market.b}</span>
-      </div>
-
-      {isResolved ? (
-        <div
-          className={`mb-6 rounded-xl border p-5 text-center ${
-            market.resolution === 'yes'
-              ? 'border-green-200 bg-green-50'
-              : 'border-red-200 bg-red-50'
-          }`}
-        >
-          <p
-            className={`text-2xl font-bold ${
-              market.resolution === 'yes' ? 'text-green-600' : 'text-red-500'
-            }`}
-          >
-            Resolved: {market.resolution?.toUpperCase()}
-          </p>
-          {market.resolved_at && (
-            <p className="mt-1 text-sm text-gray-500">
-              {new Date(market.resolved_at).toLocaleDateString('en-GB', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
-            </p>
-          )}
-        </div>
-      ) : (
-        <TradePanel
-          marketId={market.id}
-          qYes={Number(market.q_yes)}
-          qNo={Number(market.q_no)}
-          b={Number(market.b)}
-        />
-      )}
-
-      {isAdmin && !isResolved && (
-        <div className="mt-6">
-          <ResolvePanel marketId={market.id} />
-        </div>
-      )}
-    </main>
+      </main>
+    </>
   )
 }

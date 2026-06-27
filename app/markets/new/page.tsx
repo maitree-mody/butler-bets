@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import Nav from '@/app/components/Nav'
 import { CreateMarketForm } from './CreateMarketForm'
 
 export default async function NewMarketPage() {
@@ -11,13 +12,12 @@ export default async function NewMarketPage() {
   if (!user) redirect('/login')
 
   return (
-    <main className="flex min-h-screen items-start justify-center px-4 py-16">
-      <div className="w-full max-w-lg">
-        <h1 className="mb-8 text-2xl font-semibold text-gray-900">
-          New market
-        </h1>
+    <>
+      <Nav email={user.email ?? ''} />
+      <main className="mx-auto max-w-xl px-8 py-16">
+        <h1 className="font-display mb-12 text-6xl text-[#18181B]">New market</h1>
         <CreateMarketForm />
-      </div>
-    </main>
+      </main>
+    </>
   )
 }

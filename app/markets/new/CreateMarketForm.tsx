@@ -6,16 +6,16 @@ export function CreateMarketForm() {
   const [error, action, isPending] = useActionState(createMarket, null)
 
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <form action={action} className="flex flex-col gap-6">
       {error && (
-        <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">
+        <p className="rounded-lg bg-[#C0413B]/8 px-4 py-3 text-sm text-[#C0413B]">
           {error}
         </p>
       )}
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="question" className="text-sm font-medium text-gray-800">
-          Question <span className="text-red-500">*</span>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="question" className="text-sm font-medium text-[#18181B]">
+          Question <span className="text-[#C0413B]">*</span>
         </label>
         <input
           id="question"
@@ -24,40 +24,40 @@ export function CreateMarketForm() {
           required
           maxLength={200}
           placeholder="Will X happen by Y date?"
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+          className="rounded-lg border border-[#EAE7E1] bg-[#FBFAF8] px-4 py-3 text-sm text-[#18181B] placeholder:text-[#71717A] focus:border-[#4A86C5] focus:outline-none focus:ring-2 focus:ring-[#4A86C5]/15"
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="description" className="text-sm font-medium text-gray-800">
+      <div className="flex flex-col gap-2">
+        <label htmlFor="description" className="text-sm font-medium text-[#18181B]">
           Description
-          <span className="ml-1 text-xs font-normal text-gray-400">optional</span>
+          <span className="ml-2 text-sm font-normal text-[#71717A]">optional</span>
         </label>
         <textarea
           id="description"
           name="description"
           rows={3}
           placeholder="Add context, resolution criteria, sources…"
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+          className="rounded-lg border border-[#EAE7E1] bg-[#FBFAF8] px-4 py-3 text-sm text-[#18181B] placeholder:text-[#71717A] focus:border-[#4A86C5] focus:outline-none focus:ring-2 focus:ring-[#4A86C5]/15"
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="closes_at" className="text-sm font-medium text-gray-800">
-          Closes at <span className="text-red-500">*</span>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="closes_at" className="text-sm font-medium text-[#18181B]">
+          Closes at <span className="text-[#C0413B]">*</span>
         </label>
         <input
           id="closes_at"
           name="closes_at"
           type="datetime-local"
           required
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
+          className="rounded-lg border border-[#EAE7E1] bg-[#FBFAF8] px-4 py-3 text-sm text-[#18181B] focus:border-[#4A86C5] focus:outline-none focus:ring-2 focus:ring-[#4A86C5]/15"
         />
       </div>
 
       {/* Liquidity is a temporary advanced setting, de-emphasised until hidden pre-launch */}
-      <div className="flex flex-col gap-1 border-t border-gray-100 pt-4">
-        <label htmlFor="b" className="text-xs font-medium text-gray-400">
+      <div className="flex flex-col gap-2 border-t border-[#EAE7E1] pt-5">
+        <label htmlFor="b" className="text-xs font-medium text-[#71717A]">
           Liquidity (b)
         </label>
         <input
@@ -67,9 +67,9 @@ export function CreateMarketForm() {
           defaultValue={100}
           min={10}
           max={500}
-          className="w-24 rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-400 outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400"
+          className="w-24 rounded-lg border border-[#EAE7E1] bg-[#FBFAF8] px-3 py-2 text-xs text-[#71717A] focus:border-[#4A86C5] focus:outline-none"
         />
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-[#71717A]">
           Higher = more stable prices, lower = prices move faster
         </p>
       </div>
@@ -77,7 +77,7 @@ export function CreateMarketForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="mt-1 rounded-md bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+        className="rounded-lg bg-[#4A86C5] px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
       >
         {isPending ? 'Creating…' : 'Create market'}
       </button>

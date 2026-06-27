@@ -47,17 +47,17 @@ export default function TradePanel({ marketId, qYes, qNo, b }: TradePanelProps) 
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <h2 className="mb-4 text-lg font-semibold">Place a Trade</h2>
+    <div className="rounded-2xl border border-[#EAE7E1] bg-white p-7">
+      <h2 className="mb-6 text-sm font-medium text-[#71717A]">Place a trade</h2>
 
-      <div className="mb-4 flex gap-2">
+      <div className="mb-5 flex gap-2">
         <button
           type="button"
           onClick={() => setSide('yes')}
-          className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+          className={`flex-1 rounded-lg py-3 text-sm font-semibold transition-all ${
             side === 'yes'
-              ? 'bg-green-500 text-white'
-              : 'border border-gray-200 text-gray-500 hover:bg-gray-50'
+              ? 'bg-[#4A86C5] text-white'
+              : 'border border-[#EAE7E1] text-[#71717A] hover:border-[#4A86C5]/40 hover:text-[#4A86C5]'
           }`}
         >
           YES
@@ -65,18 +65,18 @@ export default function TradePanel({ marketId, qYes, qNo, b }: TradePanelProps) 
         <button
           type="button"
           onClick={() => setSide('no')}
-          className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+          className={`flex-1 rounded-lg py-3 text-sm font-semibold transition-all ${
             side === 'no'
-              ? 'bg-red-500 text-white'
-              : 'border border-gray-200 text-gray-500 hover:bg-gray-50'
+              ? 'bg-[#C0413B] text-white'
+              : 'border border-[#EAE7E1] text-[#71717A] hover:border-[#C0413B]/40 hover:text-[#C0413B]'
           }`}
         >
           NO
         </button>
       </div>
 
-      <div className="mb-4">
-        <label className="mb-1 block text-sm text-gray-600" htmlFor="shares-input">
+      <div className="mb-5">
+        <label className="mb-2 block text-sm font-medium text-[#18181B]" htmlFor="shares-input">
           Shares
         </label>
         <input
@@ -86,25 +86,25 @@ export default function TradePanel({ marketId, qYes, qNo, b }: TradePanelProps) 
           step={1}
           value={sharesInput}
           onChange={(e) => setSharesInput(e.target.value)}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="w-full rounded-lg border border-[#EAE7E1] bg-[#FBFAF8] px-4 py-3 text-sm text-[#18181B] placeholder:text-[#71717A] focus:border-[#4A86C5] focus:outline-none focus:ring-2 focus:ring-[#4A86C5]/15"
         />
       </div>
 
       {validShares > 0 && (
-        <div className="mb-4 rounded-lg bg-gray-50 p-4 text-sm">
+        <div className="mb-5 rounded-xl bg-[#FBFAF8] p-4 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-500">Cost</span>
-            <span className="font-medium">~{previewCost.toFixed(2)} crowns</span>
+            <span className="text-[#71717A]">Cost</span>
+            <span className="font-medium text-[#18181B]">~{previewCost.toFixed(2)} crowns</span>
           </div>
-          <div className="mt-1 flex justify-between">
-            <span className="text-gray-500">New price</span>
-            <span className="font-medium">{newPricePct}% YES</span>
+          <div className="mt-2 flex justify-between">
+            <span className="text-[#71717A]">New price</span>
+            <span className="font-medium text-[#18181B]">{newPricePct}% YES</span>
           </div>
-          <div className="mt-1 flex justify-between">
-            <span className="text-gray-500">Avg price / share</span>
-            <span className="font-medium">{avgPrice.toFixed(4)} crowns</span>
+          <div className="mt-2 flex justify-between">
+            <span className="text-[#71717A]">Avg per share</span>
+            <span className="font-medium text-[#18181B]">{avgPrice.toFixed(4)} crowns</span>
           </div>
-          <p className="mt-3 text-xs text-gray-400">
+          <p className="mt-3 text-xs text-[#71717A]">
             Final cost may differ slightly as the price moves.
           </p>
         </div>
@@ -114,22 +114,20 @@ export default function TradePanel({ marketId, qYes, qNo, b }: TradePanelProps) 
         type="button"
         onClick={handleTrade}
         disabled={isPending || validShares === 0}
-        className={`w-full rounded-lg py-2.5 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed ${
-          side === 'yes'
-            ? 'bg-green-500 hover:bg-green-600 disabled:bg-green-300'
-            : 'bg-red-500 hover:bg-red-600 disabled:bg-red-300'
-        }`}
+        className={`w-full rounded-lg py-3 text-sm font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40 ${
+          side === 'yes' ? 'bg-[#4A86C5]' : 'bg-[#C0413B]'
+        } hover:opacity-90`}
       >
         {isPending ? 'Processing…' : `Buy ${side.toUpperCase()}`}
       </button>
 
       {result && (
-        <p className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+        <p className="mt-4 rounded-xl bg-[#2E7D5B]/8 px-4 py-3 text-sm text-[#2E7D5B]">
           {result}
         </p>
       )}
       {error && (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+        <p className="mt-4 rounded-xl bg-[#C0413B]/8 px-4 py-3 text-sm text-[#C0413B]">
           {error}
         </p>
       )}
