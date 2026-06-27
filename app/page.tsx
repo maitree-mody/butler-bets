@@ -32,6 +32,14 @@ export default async function Home({
 
   if (!user) redirect('/login')
 
+  const { data: userProfile } = await supabase
+    .from('users')
+    .select('display_name')
+    .eq('id', user.id)
+    .single()
+
+  if (!userProfile?.display_name) redirect('/onboarding')
+
   const oneDayAgo = isoTimestampHoursAgo(24)
   const [marketsResult, recentTradesResult] = await Promise.all([
     supabase

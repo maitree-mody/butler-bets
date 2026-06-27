@@ -32,5 +32,15 @@ export async function GET(request: NextRequest) {
     )
   }
 
+  const { data: profile } = await supabase
+    .from('users')
+    .select('display_name')
+    .eq('id', user!.id)
+    .single()
+
+  if (!profile?.display_name) {
+    return NextResponse.redirect(new URL('/onboarding', origin))
+  }
+
   return NextResponse.redirect(new URL('/', origin))
 }

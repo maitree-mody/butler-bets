@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { displayNameFromEmail } from '@/lib/display-name'
 import { priceYes } from '@/lib/lmsr'
+import { displayNameFromEmail } from '@/lib/display-name'
 import Nav from '@/app/components/Nav'
 import TradePanel from './TradePanel'
 import ResolvePanel from './ResolvePanel'
@@ -11,7 +11,7 @@ import PriceChart, { type PricePoint } from './PriceChart'
 type MarketPosition = {
   yes_shares: number | string
   no_shares: number | string
-  users: { email: string | null } | Array<{ email: string | null }> | null
+  users: { email: string | null; display_name: string | null } | Array<{ email: string | null; display_name: string | null }> | null
 }
 
 export default async function MarketPage({
@@ -46,7 +46,7 @@ export default async function MarketPage({
       .order('created_at', { ascending: true }),
     supabase
       .from('positions')
-      .select('yes_shares, no_shares, users(email)')
+      .select('yes_shares, no_shares, users(email, display_name)')
       .eq('market_id', id),
   ])
 
@@ -75,20 +75,21 @@ export default async function MarketPage({
   const pricePoints: PricePoint[] = [
     { time: market.created_at, price: 0.5 },
     ...tradePoints,
-    // If no trades have been made, extend a flat line to now so the chart isn't a single dot.
     ...(tradePoints.length === 0 ? [{ time: new Date().toISOString(), price: 0.5 }] : []),
   ]
+
   const topTraders = ((positions ?? []) as MarketPosition[])
     .map((position) => {
       const relatedUser = Array.isArray(position.users) ? position.users[0] : position.users
       return {
-        displayName: displayNameFromEmail(relatedUser?.email),
+        displayName: relatedUser?.display_name ?? displayNameFromEmail(relatedUser?.email),
         totalShares: Number(position.yes_shares) + Number(position.no_shares),
       }
     })
     .filter((position) => position.totalShares > 0)
     .sort((a, b) => b.totalShares - a.totalShares)
     .slice(0, 3)
+
   const isResolved = market.status === 'resolved'
 
   const yesProb = priceYes(Number(market.q_yes), Number(market.q_no), Number(market.b))

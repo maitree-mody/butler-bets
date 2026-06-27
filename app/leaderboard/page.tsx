@@ -15,7 +15,7 @@ export default async function LeaderboardPage() {
   if (!user) redirect('/login')
 
   const [usersResult, tradesResult] = await Promise.all([
-    supabase.from('users').select('id, email, crowns'),
+    supabase.from('users').select('id, email, crowns, display_name'),
     supabase.from('trades').select('user_id'),
   ])
 
@@ -28,7 +28,7 @@ export default async function LeaderboardPage() {
   const rankedUsers = (usersResult.data ?? [])
     .map((entry) => ({
       ...entry,
-      displayName: displayNameFromEmail(entry.email),
+      displayName: (entry as { display_name?: string | null }).display_name ?? displayNameFromEmail(entry.email),
       profit: Number(entry.crowns) - STARTING_CROWNS,
       tradeCount: tradeCounts.get(entry.id) ?? 0,
     }))

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 const links = [
   { href: '/', label: 'Markets' },
   { href: '/leaderboard', label: 'Leaderboard' },
+  { href: '/profile', label: 'Profile' },
 ]
 
 export default function NavLinks({ mobile = false }: { mobile?: boolean }) {
