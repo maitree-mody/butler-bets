@@ -42,89 +42,86 @@ export default async function LeaderboardPage() {
   return (
     <>
       <Nav email={user.email ?? ''} />
-      <main className="page-shell py-10 sm:py-14">
-        <header className="reveal grid gap-8 border-b border-line-strong pb-8 md:grid-cols-[minmax(0,1fr)_18rem] md:items-end">
-          <div>
-            <p className="eyebrow mb-4">Season standings</p>
-            <h1 className="page-title">Leaderboard</h1>
-            <p className="mt-4 max-w-xl text-base leading-7 text-ink-soft">
-              Ranked by profit from a 1,000-crown starting balance. Every completed order counts toward activity.
-            </p>
+      <main className="page-shell py-8 sm:py-10">
+        <header className="reveal mb-6 border-b border-line pb-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-ink-soft">Season standings</p>
+              <h1 className="font-display mt-2 text-4xl font-bold tracking-tight text-ink">Leaderboard</h1>
+              <p className="mt-2 text-sm text-ink-soft">
+                Ranked by profit from a 1,000-crown starting balance.
+              </p>
+            </div>
+            {myRow && !error && (
+              <dl className="font-numeric flex gap-6 rounded-xl border border-line bg-accent-soft px-5 py-4">
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Your rank</dt>
+                  <dd className="mt-1 text-2xl font-bold text-ink">
+                    #{myRank} <span className="text-sm font-normal text-ink-soft">/ {rankedUsers.length}</span>
+                  </dd>
+                </div>
+                <div className="border-l border-line pl-6">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Your profit</dt>
+                  <dd className={`mt-1 text-2xl font-bold ${myRow.profit >= 0 ? 'text-positive' : 'text-danger'}`}>
+                    {myRow.profit >= 0 ? '+' : ''}{myRow.profit.toFixed(2)}
+                  </dd>
+                </div>
+              </dl>
+            )}
           </div>
-          {myRow && !error && (
-            <dl className="font-numeric grid grid-cols-2 border border-line-strong bg-surface text-sm">
-              <div className="border-r py-3 pr-4">
-                <dt className="eyebrow">Your rank</dt>
-                <dd className="mt-2 text-xl font-semibold">
-                  {String(myRank).padStart(2, '0')} <span className="text-xs font-normal text-ink-faint">/ {rankedUsers.length}</span>
-                </dd>
-              </div>
-              <div className="py-3 pl-4 text-right">
-                <dt className="eyebrow">Your profit</dt>
-                <dd className={`mt-2 text-xl font-semibold ${myRow.profit >= 0 ? 'text-positive' : 'text-danger'}`}>
-                  {myRow.profit >= 0 ? '+' : ''}{myRow.profit.toFixed(2)}
-                </dd>
-              </div>
-            </dl>
-          )}
         </header>
 
-        <section className="reveal reveal-delay-1 pt-7" aria-labelledby="ranking-title">
-          <div className="mb-3 flex items-end justify-between">
-            <h2 id="ranking-title" className="font-display text-2xl font-medium tracking-[-0.025em]">Top traders</h2>
-            <p className="font-numeric text-xs text-ink-faint">Top {Math.min(LEADERBOARD_LIMIT, rankedUsers.length)} by profit</p>
-          </div>
+        <section className="reveal reveal-delay-1" aria-labelledby="ranking-title">
+          <h2 id="ranking-title" className="mb-3 text-sm font-semibold uppercase tracking-widest text-ink-soft">
+            Top {Math.min(LEADERBOARD_LIMIT, rankedUsers.length)} traders
+          </h2>
 
           {error ? (
-            <p className="border-l-2 border-danger bg-danger-soft px-4 py-3 text-sm text-danger" role="alert">
+            <p className="rounded-lg border border-danger bg-danger-soft px-4 py-3 text-sm text-danger" role="alert">
               Failed to load leaderboard: {error.message}
             </p>
           ) : rankedUsers.length === 0 ? (
-            <p className="border-y border-line-strong py-12 text-center text-ink-soft">No traders yet.</p>
+            <p className="rounded-xl border border-line py-12 text-center text-ink-soft">No traders yet.</p>
           ) : (
-            <div className="relative border-y border-line-strong">
+            <div className="overflow-hidden rounded-xl border border-line">
               <table className="font-numeric w-full table-fixed" aria-label="Trader rankings">
                 <thead>
                   <tr className="border-b bg-surface-muted text-left">
-                    <th className="w-[14%] px-2 py-3 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-ink-faint sm:w-24 sm:px-4">Rank</th>
-                    <th className="w-[38%] px-2 py-3 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-ink-faint sm:px-4">Trader</th>
-                    <th className="w-[20%] px-2 py-3 text-right text-[0.625rem] font-bold uppercase tracking-[0.1em] text-ink-faint sm:px-4">Trades</th>
-                    <th className="w-[28%] px-2 py-3 text-right text-[0.625rem] font-bold uppercase tracking-[0.1em] text-ink-faint sm:px-4">Profit</th>
+                    <th className="w-16 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Rank</th>
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Trader</th>
+                    <th className="w-20 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-ink-soft">Trades</th>
+                    <th className="w-28 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-ink-soft">Profit</th>
                   </tr>
                 </thead>
                 <tbody>
                   {topUsers.map((entry, index) => {
                     const rank = index + 1
                     const isMe = entry.id === user.id
-                    const isTopThree = rank <= 3
 
                     return (
                       <tr
                         key={entry.id}
-                        className={`group border-b transition-colors duration-150 last:border-0 hover:bg-surface-raised ${
-                          isMe
-                            ? 'bg-surface-raised font-semibold'
-                            : isTopThree
-                              ? 'bg-surface'
-                              : 'bg-transparent'
-                        }`}
+                        className={`border-b last:border-0 ${isMe ? 'bg-accent-soft' : 'bg-white hover:bg-surface-muted'}`}
                       >
-                        <td className={`relative px-2 py-4 sm:px-4 ${isMe ? 'border-l-4 border-accent' : ''}`}>
-                          <span className={`text-base font-semibold sm:text-lg ${isTopThree ? 'text-accent' : 'text-ink'}`}>
-                            {String(rank).padStart(2, '0')}
+                        <td className="px-4 py-3.5">
+                          <span className={`text-base font-bold ${rank <= 3 ? 'text-accent' : 'text-ink-soft'}`}>
+                            #{rank}
                           </span>
-                          {isTopThree && <span className="ml-1.5 hidden text-[0.55rem] font-bold uppercase tracking-[0.08em] text-ink-faint sm:inline">Top 3</span>}
                         </td>
-                        <td className="px-2 py-4 sm:px-4">
+                        <td className="px-4 py-3.5">
                           <div className="flex min-w-0 items-center gap-2">
-                            <span className={`min-w-0 truncate text-xs sm:text-sm ${isMe ? 'font-bold text-accent' : 'font-medium text-ink'}`}>
+                            <span className={`min-w-0 truncate text-sm font-semibold ${isMe ? 'text-accent' : 'text-ink'}`}>
                               {entry.displayName}
                             </span>
-                            {isMe && <span className="shrink-0 border-b border-accent pb-0.5 text-[0.6rem] font-bold uppercase tracking-[0.1em] text-accent">You</span>}
+                            {isMe && (
+                              <span className="shrink-0 rounded-full bg-[#FFF98B] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-ink">
+                                you
+                              </span>
+                            )}
                           </div>
                         </td>
-                        <td className="px-2 py-4 text-right text-xs font-semibold text-ink-soft sm:px-4 sm:text-sm">{entry.tradeCount}</td>
-                        <td className={`px-2 py-4 text-right text-xs font-semibold sm:px-4 sm:text-sm ${entry.profit >= 0 ? 'text-positive' : 'text-danger'}`}>
+                        <td className="px-4 py-3.5 text-right text-sm font-semibold text-ink-soft">{entry.tradeCount}</td>
+                        <td className={`px-4 py-3.5 text-right text-sm font-bold ${entry.profit >= 0 ? 'text-positive' : 'text-danger'}`}>
                           {entry.profit >= 0 ? '+' : ''}{entry.profit.toFixed(2)}
                         </td>
                       </tr>
@@ -132,13 +129,17 @@ export default async function LeaderboardPage() {
                   })}
                 </tbody>
                 {myRow && !isCurrentUserInTop && (
-                  <tfoot className="sticky bottom-0 z-10 bg-ink text-white">
+                  <tfoot className="border-t-2 border-accent bg-accent-soft">
                     <tr>
-                      <td colSpan={2} className="border-l-4 border-accent px-2 py-3 text-xs font-bold sm:px-4 sm:text-sm">
-                        You: #{myRank} <span className="ml-2 font-normal text-white/70">{myRow.displayName}</span>
+                      <td className="px-4 py-3 text-sm font-bold text-accent">#{myRank}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-accent">{myRow.displayName}</span>
+                          <span className="rounded-full bg-[#FFF98B] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-ink">you</span>
+                        </div>
                       </td>
-                      <td className="px-2 py-3 text-right text-xs font-semibold text-white/70 sm:px-4 sm:text-sm">{myRow.tradeCount}</td>
-                      <td className={`px-2 py-3 text-right text-xs font-semibold sm:px-4 sm:text-sm ${myRow.profit >= 0 ? 'text-positive-soft' : 'text-danger-soft'}`}>
+                      <td className="px-4 py-3 text-right text-sm font-semibold text-ink-soft">{myRow.tradeCount}</td>
+                      <td className={`px-4 py-3 text-right text-sm font-bold ${myRow.profit >= 0 ? 'text-positive' : 'text-danger'}`}>
                         {myRow.profit >= 0 ? '+' : ''}{myRow.profit.toFixed(2)}
                       </td>
                     </tr>

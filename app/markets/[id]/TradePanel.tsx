@@ -52,109 +52,105 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
   }
 
   return (
-    <section id="trade-ticket" className="scroll-mt-20 border border-line-strong border-t-2 border-t-accent bg-surface-raised" aria-labelledby="trade-ticket-title">
-      <div className="flex items-center justify-between border-b px-4 py-3 sm:px-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 bg-accent" aria-hidden="true" />
-            <p className="eyebrow">Order entry</p>
-          </div>
-          <h2 id="trade-ticket-title" className="mt-1 text-base font-semibold tracking-[-0.02em]">Trade ticket</h2>
-        </div>
+    <section id="trade-ticket" className="scroll-mt-20 rounded-xl border border-line bg-white p-5" aria-labelledby="trade-ticket-title">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 id="trade-ticket-title" className="text-base font-semibold text-ink">Trade ticket</h2>
         <div className="text-right">
-          <p className="eyebrow">Available</p>
-          <p className="font-numeric mt-1 text-sm font-semibold">{availableBalance.toFixed(2)}</p>
+          <p className="text-xs text-ink-soft">Available</p>
+          <p className="font-numeric text-sm font-bold text-ink">{availableBalance.toFixed(2)} crowns</p>
         </div>
       </div>
 
-      <div className="p-4 sm:p-5">
-        <fieldset>
-          <legend className="eyebrow mb-2">Position</legend>
-          <div className="grid grid-cols-2 border border-line-strong">
-            <button
-              type="button"
-              aria-pressed={side === 'yes'}
-              onClick={() => setSide('yes')}
-              className={`pressable min-h-12 border-r px-3 text-left ${
-                side === 'yes' ? 'bg-accent text-white' : 'bg-surface text-ink hover:bg-surface-active'
-              }`}
-            >
-              <span className="block text-[0.6875rem] font-bold uppercase tracking-[0.1em]">Yes</span>
-              <span className="font-numeric mt-0.5 block text-lg font-semibold">{Math.round(currentYesPrice * 100)}¢</span>
-            </button>
-            <button
-              type="button"
-              aria-pressed={side === 'no'}
-              onClick={() => setSide('no')}
-              className={`pressable min-h-12 px-3 text-left ${
-                side === 'no' ? 'bg-ink text-white' : 'bg-surface text-ink hover:bg-surface-muted'
-              }`}
-            >
-              <span className="block text-[0.6875rem] font-bold uppercase tracking-[0.1em]">No</span>
-              <span className="font-numeric mt-0.5 block text-lg font-semibold">{Math.round((1 - currentYesPrice) * 100)}¢</span>
-            </button>
-          </div>
-        </fieldset>
-
-        <div className="mt-5">
-          <label className="eyebrow mb-2 block" htmlFor="shares-input">Quantity</label>
-          <div className="flex min-h-12 border border-line-strong bg-surface transition-colors duration-150 focus-within:border-accent focus-within:bg-surface-raised">
-            <input
-              id="shares-input"
-              type="number"
-              min={1}
-              step={1}
-              inputMode="numeric"
-              value={sharesInput}
-              onChange={(event) => setSharesInput(event.target.value)}
-              className="font-numeric min-w-0 flex-1 bg-transparent px-3 text-lg font-semibold text-ink outline-none"
-            />
-            <span className="flex items-center border-l px-3 text-xs font-medium text-ink-faint">shares</span>
-          </div>
+      <fieldset className="mb-4">
+        <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">Position</legend>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            aria-pressed={side === 'yes'}
+            onClick={() => setSide('yes')}
+            className={`pressable rounded-lg px-3 py-3 text-left transition-colors ${
+              side === 'yes'
+                ? 'bg-accent text-white'
+                : 'border border-line bg-white text-accent hover:bg-accent-soft'
+            }`}
+          >
+            <span className="block text-xs font-bold uppercase tracking-wide">Yes</span>
+            <span className="font-numeric mt-0.5 block text-xl font-bold">{Math.round(currentYesPrice * 100)}¢</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={side === 'no'}
+            onClick={() => setSide('no')}
+            className={`pressable rounded-lg px-3 py-3 text-left transition-colors ${
+              side === 'no'
+                ? 'bg-danger text-white'
+                : 'border border-line bg-white text-danger hover:bg-danger-soft'
+            }`}
+          >
+            <span className="block text-xs font-bold uppercase tracking-wide">No</span>
+            <span className="font-numeric mt-0.5 block text-xl font-bold">{Math.round((1 - currentYesPrice) * 100)}¢</span>
+          </button>
         </div>
+      </fieldset>
 
-        <dl className="font-numeric mt-5 divide-y border-y text-sm">
-          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
-            <dt className="text-ink-soft">Selected side</dt>
-            <dd className="font-semibold">{side.toUpperCase()} @ {Math.round(currentSidePrice * 100)}¢</dd>
-          </div>
-          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
-            <dt className="text-ink-soft">Estimated cost</dt>
-            <dd className="font-semibold">{previewCost.toFixed(2)} crowns</dd>
-          </div>
-          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
-            <dt className="text-ink-soft">Price after order</dt>
-            <dd className="font-semibold">{Math.round(newSidePrice * 100)}¢</dd>
-          </div>
-          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
-            <dt className="text-ink-soft">Payout if correct</dt>
-            <dd className="font-semibold">{estimatedPayout.toFixed(2)} crowns</dd>
-          </div>
-          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
-            <dt className="text-ink-soft">Potential profit</dt>
-            <dd className="font-semibold text-accent">+{Math.max(0, potentialProfit).toFixed(2)}</dd>
-          </div>
-          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
-            <dt className="text-ink-soft">Balance after</dt>
-            <dd className={`font-semibold ${balanceAfter < 0 ? 'text-danger' : 'text-ink'}`}>{balanceAfter.toFixed(2)}</dd>
-          </div>
-        </dl>
-
-        <button
-          type="button"
-          onClick={handleTrade}
-          disabled={isPending || validShares === 0}
-          className={`pressable mt-5 min-h-12 w-full px-4 text-sm font-bold disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-faint ${
-            side === 'yes' ? 'bg-accent text-white hover:bg-accent-hover' : 'bg-ink text-white hover:bg-accent'
-          }`}
-        >
-          {isPending ? 'Sending order…' : `Buy ${side.toUpperCase()} · ${previewCost.toFixed(2)}`}
-        </button>
-
-        <div aria-live="polite">
-          {result && <p className="mt-4 border-l-2 border-accent bg-accent-soft px-3 py-2.5 text-sm text-accent">{result}</p>}
-          {error && <p className="mt-4 border-l-2 border-danger bg-danger-soft px-3 py-2.5 text-sm text-danger">{error}</p>}
+      <div className="mb-4">
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-ink-soft" htmlFor="shares-input">Quantity</label>
+        <div className="flex min-h-11 items-center rounded-lg border border-line bg-white transition-colors focus-within:border-accent">
+          <input
+            id="shares-input"
+            type="number"
+            min={1}
+            step={1}
+            inputMode="numeric"
+            value={sharesInput}
+            onChange={(event) => setSharesInput(event.target.value)}
+            className="font-numeric min-w-0 flex-1 bg-transparent px-3 text-lg font-bold text-ink outline-none"
+          />
+          <span className="border-l px-3 text-xs font-medium text-ink-soft">shares</span>
         </div>
+      </div>
+
+      <dl className="font-numeric mb-4 divide-y rounded-lg border border-line text-sm">
+        <div className="flex items-center justify-between px-3 py-2">
+          <dt className="text-ink-soft">Side</dt>
+          <dd className="font-semibold">{side.toUpperCase()} @ {Math.round(currentSidePrice * 100)}¢</dd>
+        </div>
+        <div className="flex items-center justify-between px-3 py-2">
+          <dt className="text-ink-soft">Cost</dt>
+          <dd className="font-semibold">{previewCost.toFixed(2)} crowns</dd>
+        </div>
+        <div className="flex items-center justify-between px-3 py-2">
+          <dt className="text-ink-soft">New price</dt>
+          <dd className="font-semibold">{Math.round(newSidePrice * 100)}¢</dd>
+        </div>
+        <div className="flex items-center justify-between px-3 py-2">
+          <dt className="text-ink-soft">Payout if correct</dt>
+          <dd className="font-semibold">{estimatedPayout.toFixed(2)} crowns</dd>
+        </div>
+        <div className="flex items-center justify-between px-3 py-2">
+          <dt className="text-ink-soft">Potential profit</dt>
+          <dd className="font-semibold text-positive">+{Math.max(0, potentialProfit).toFixed(2)}</dd>
+        </div>
+        <div className="flex items-center justify-between px-3 py-2">
+          <dt className="text-ink-soft">Balance after</dt>
+          <dd className={`font-semibold ${balanceAfter < 0 ? 'text-danger' : 'text-ink'}`}>{balanceAfter.toFixed(2)}</dd>
+        </div>
+      </dl>
+
+      <button
+        type="button"
+        onClick={handleTrade}
+        disabled={isPending || validShares === 0}
+        className={`pressable w-full rounded-lg py-3 text-sm font-bold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+          side === 'yes' ? 'bg-accent hover:bg-accent-hover' : 'bg-danger hover:bg-red-700'
+        }`}
+      >
+        {isPending ? 'Placing order…' : `Buy ${side.toUpperCase()} · ${previewCost.toFixed(2)} crowns`}
+      </button>
+
+      <div aria-live="polite">
+        {result && <p className="mt-3 rounded-lg border border-positive bg-positive-soft px-3 py-2.5 text-sm text-positive">{result}</p>}
+        {error && <p className="mt-3 rounded-lg border border-danger bg-danger-soft px-3 py-2.5 text-sm text-danger">{error}</p>}
       </div>
     </section>
   )

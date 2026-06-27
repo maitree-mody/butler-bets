@@ -55,9 +55,9 @@ export default async function MarketPage({
       <>
         <Nav email={user.email ?? ''} />
         <main className="page-shell py-20 text-center">
-          <p className="font-display text-3xl font-medium">Market not found.</p>
+          <p className="font-display text-3xl font-semibold">Market not found.</p>
           <Link href="/" className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4">
-            Back to market board
+            Back to markets
           </Link>
         </main>
       </>
@@ -115,88 +115,91 @@ export default async function MarketPage({
   return (
     <>
       <Nav email={user.email ?? ''} />
-      <main className="page-shell py-8 sm:py-10">
-        <Link href="/" className="inline-flex min-h-11 items-center text-xs font-semibold text-ink-soft underline decoration-transparent underline-offset-4 transition-colors hover:text-ink hover:decoration-line-strong">
-          ← Back to market board
+      <main className="page-shell py-6 sm:py-8">
+        <Link href="/" className="inline-flex items-center gap-1 text-sm font-medium text-ink-soft transition-colors hover:text-ink">
+          ← Markets
         </Link>
 
-        <header className="reveal mt-5 border-b border-line-strong pb-7 sm:pb-9">
-          <div className="mb-4 flex flex-wrap items-center gap-3 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-ink-faint">
-            <span className={market.status === 'open' ? 'text-accent' : 'text-ink-faint'}>{market.status}</span>
-            <span aria-hidden="true">/</span>
-            <span>Expires {closeDate}</span>
+        <header className="reveal mt-4 pb-6 border-b border-line">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+              market.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+            }`}>
+              {market.status}
+            </span>
+            <span className="text-xs text-ink-soft">Expires {closeDate}</span>
             {lastTradeLabel && (
-              <>
-                <span aria-hidden="true">/</span>
-                <span>{tradePoints.length} trades · last {lastTradeLabel}</span>
-              </>
+              <span className="text-xs text-ink-soft">{tradePoints.length} trades · last {lastTradeLabel}</span>
             )}
           </div>
           <h1 className="page-title max-w-4xl">{market.question}</h1>
-          {market.description && <p className="mt-5 max-w-3xl text-base leading-7 text-ink-soft sm:text-[1.0625rem]">{market.description}</p>}
+          {market.description && <p className="mt-3 max-w-3xl text-base leading-7 text-ink-soft">{market.description}</p>}
         </header>
 
-        <div className="reveal reveal-delay-1 grid gap-8 py-7 lg:grid-cols-[minmax(0,1fr)_21.5rem] lg:gap-10">
+        <div className="reveal reveal-delay-1 grid gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-8">
           <div className="min-w-0">
-            <section aria-label="Current market prices" className="grid grid-cols-2 border border-line-strong bg-surface sm:grid-cols-4">
-              <a href={isResolved ? '#market-result' : '#trade-ticket'} className="quote-cell border-b border-r p-4 sm:border-b-0 sm:p-5">
-                <p className="eyebrow text-accent">Yes price</p>
-                <p className="font-numeric mt-2 text-[2.6rem] font-semibold leading-none tracking-[-0.055em] text-accent sm:text-5xl">{yesPct}¢</p>
-                <p className={`font-numeric mt-2 text-[0.6875rem] font-semibold ${movement > 0 ? 'text-positive' : movement < 0 ? 'text-danger' : 'text-ink-faint'}`}>
-                  {movement > 0 ? '▲' : movement < 0 ? '▼' : '—'} {Math.abs(movement)} pts vs open
-                </p>
-              </a>
-              <a href={isResolved ? '#market-result' : '#trade-ticket'} className="quote-cell border-b p-4 sm:border-b-0 sm:border-r sm:p-5">
-                <p className="eyebrow">No price</p>
-                <p className="font-numeric mt-2 text-[2.6rem] font-semibold leading-none tracking-[-0.055em] sm:text-5xl">{noPct}¢</p>
-                <p className="font-numeric mt-2 text-[0.6875rem] font-semibold text-ink-faint">{isResolved ? 'View result ↓' : 'Open order ticket ↓'}</p>
-              </a>
-              <div className="border-r bg-surface-muted p-4 sm:p-5">
-                <p className="eyebrow">Volume</p>
-                <p className="font-numeric mt-3 text-lg font-semibold">{volume.toLocaleString()}</p>
-                <p className="mt-1 text-xs text-ink-faint">shares traded</p>
+            {/* Giant YES/NO numbers */}
+            <section aria-label="Current market prices" className="mb-6 rounded-xl border border-line p-6">
+              <div className="flex items-end gap-8">
+                <a href={isResolved ? '#market-result' : '#trade-ticket'} className="group">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-ink-soft">YES</p>
+                  <p className="font-numeric mt-1 text-5xl font-bold leading-none text-accent">{yesPct}¢</p>
+                  <p className={`font-numeric mt-1.5 text-xs font-semibold ${movement > 0 ? 'text-positive' : movement < 0 ? 'text-danger' : 'text-ink-soft'}`}>
+                    {movement > 0 ? '▲' : movement < 0 ? '▼' : '—'} {Math.abs(movement)} pts
+                  </p>
+                </a>
+                <div className="mb-2 text-2xl font-light text-ink-soft">vs</div>
+                <a href={isResolved ? '#market-result' : '#trade-ticket'} className="group">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-ink-soft">NO</p>
+                  <p className="font-numeric mt-1 text-5xl font-bold leading-none text-danger">{noPct}¢</p>
+                  <p className="font-numeric mt-1.5 text-xs font-semibold text-ink-soft">{isResolved ? 'View result ↓' : 'Click to trade ↓'}</p>
+                </a>
+                <div className="ml-auto hidden gap-6 sm:flex">
+                  <div className="text-right">
+                    <p className="font-numeric font-bold text-ink">{volume.toLocaleString()}</p>
+                    <p className="text-xs text-ink-soft">shares</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-numeric font-bold text-ink">{Number(market.b).toLocaleString()}</p>
+                    <p className="text-xs text-ink-soft">liquidity</p>
+                  </div>
+                </div>
               </div>
-              <div className="bg-surface-muted p-4 sm:p-5">
-                <p className="eyebrow">Liquidity</p>
-                <p className="font-numeric mt-3 text-lg font-semibold">{Number(market.b).toLocaleString()}</p>
-                <p className="mt-1 text-xs text-ink-faint">market depth</p>
+              {/* Progress bar */}
+              <div className="mt-5 h-2.5 w-full overflow-hidden rounded-full bg-red-100">
+                <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${yesPct}%` }} />
               </div>
             </section>
 
             <PriceChart points={pricePoints} />
 
-            <section className="mt-8 border-y border-line-strong" aria-labelledby="market-leaders-title">
-              <div className="flex items-end justify-between border-b px-1 py-3">
-                <div>
-                  <p className="eyebrow">Market leaderboard</p>
-                  <h2 id="market-leaders-title" className="font-display mt-1 text-xl font-medium tracking-[-0.02em]">Top traders in this market</h2>
-                </div>
-                <p className="font-numeric text-xs text-ink-faint">by total position</p>
+            <section className="mt-6 rounded-xl border border-line" aria-labelledby="market-leaders-title">
+              <div className="border-b px-4 py-3">
+                <h2 id="market-leaders-title" className="text-sm font-semibold text-ink">Top traders in this market</h2>
               </div>
               {topTraders.length > 0 ? (
                 <ol>
                   {topTraders.map((trader, index) => (
-                    <li key={`${trader.displayName}-${index}`} className="font-numeric grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center border-b px-2 py-3 transition-colors duration-150 last:border-0 hover:bg-surface-raised">
-                      <span className="text-sm font-semibold text-accent">{String(index + 1).padStart(2, '0')}</span>
-                      <span className="truncate text-sm font-semibold text-ink">{trader.displayName}</span>
-                      <span className="text-sm font-semibold text-ink-soft">{trader.totalShares.toLocaleString()} shares</span>
+                    <li key={`${trader.displayName}-${index}`} className="font-numeric flex items-center justify-between border-b px-4 py-3 last:border-0">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold text-accent">#{index + 1}</span>
+                        <span className="text-sm font-semibold text-ink">{trader.displayName}</span>
+                      </div>
+                      <span className="text-sm text-ink-soft">{trader.totalShares.toLocaleString()} shares</span>
                     </li>
                   ))}
                 </ol>
               ) : (
-                <p className="px-1 py-6 text-sm text-ink-soft">No positions yet. The first order takes the lead.</p>
+                <p className="px-4 py-6 text-sm text-ink-soft">No positions yet.</p>
               )}
             </section>
           </div>
 
           <aside className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
             {isResolved ? (
-              <section id="market-result" className="scroll-mt-20 border border-line-strong border-t-2 border-t-accent bg-surface-raised p-6">
-                <div className="mb-5 flex items-center justify-between border-b pb-3">
-                  <p className="eyebrow">Final result</p>
-                  <span className="font-numeric text-[0.625rem] font-bold uppercase tracking-[0.1em] text-accent">Settlement complete</span>
-                </div>
-                <p className={`font-display mt-3 text-4xl font-medium tracking-[-0.04em] ${market.resolution === 'yes' ? 'text-accent' : 'text-ink'}`}>
+              <section id="market-result" className="scroll-mt-20 rounded-xl border border-line p-6">
+                <p className="text-xs font-semibold uppercase tracking-widest text-ink-soft">Final result</p>
+                <p className={`font-display mt-3 text-5xl font-bold tracking-tight ${market.resolution === 'yes' ? 'text-accent' : 'text-danger'}`}>
                   {market.resolution?.toUpperCase()} won
                 </p>
                 {market.resolved_at && (
