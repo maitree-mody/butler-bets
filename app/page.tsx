@@ -23,6 +23,12 @@ export default async function Home() {
         <p className="text-sm text-gray-500">Signed in as {user.email}</p>
         <div className="flex items-center gap-3">
           <Link
+            href="/leaderboard"
+            className="rounded-md bg-gray-100 px-4 py-2 text-sm hover:bg-gray-200"
+          >
+            Leaderboard
+          </Link>
+          <Link
             href="/markets/new"
             className="rounded-md bg-black px-4 py-2 text-sm text-white hover:bg-gray-800"
           >
