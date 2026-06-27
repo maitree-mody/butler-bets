@@ -70,8 +70,8 @@ export default async function MarketPage({
   const isResolved = market.status === 'resolved'
 
   const yesProb = priceYes(Number(market.q_yes), Number(market.q_no), Number(market.b))
-  const yesPct = Math.round(yesProb * 100)
-  const noPct = 100 - yesPct
+  const yesPct = (yesProb * 100).toFixed(2)
+  const noPct = ((1 - yesProb) * 100).toFixed(2)
   const volume = Number(market.q_yes) + Number(market.q_no)
   const closeDate = new Date(market.closes_at).toLocaleDateString('en-GB', {
     day: 'numeric',

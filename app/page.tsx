@@ -12,6 +12,14 @@ export default async function Home() {
 
   if (!user) redirect('/login')
 
+  const { data: userProfile } = await supabase
+    .from('users')
+    .select('display_name')
+    .eq('id', user.id)
+    .single()
+
+  if (!userProfile?.display_name) redirect('/onboarding')
+
   const { data: markets, error } = await supabase
     .from('markets')
     .select('id, question, closes_at, status, b, q_yes, q_no')
