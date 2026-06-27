@@ -1,40 +1,32 @@
 import Link from 'next/link'
 import { signOut } from '@/app/actions/auth'
+import NavLinks from './NavLinks'
 
 export default function Nav({ email }: { email: string }) {
   return (
-    <header className="sticky top-0 z-10 border-b border-[#EAE7E1] bg-[#FBFAF8]">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-8 py-5">
-        <Link
-          href="/"
-          className="font-display font-medium text-[1.6rem] leading-none tracking-tight text-[#18181B]"
-        >
-          butler bets
-        </Link>
-        <div className="flex items-center gap-8">
-          <Link
-            href="/"
-            className="text-sm font-medium text-[#71717A] transition-colors hover:text-[#18181B]"
-          >
-            Markets
+    <header className="sticky top-0 z-20 border-b bg-canvas/95 backdrop-blur-md">
+      <div className="page-shell flex h-14 items-stretch justify-between">
+        <div className="flex items-stretch gap-6">
+          <Link href="/" className="font-display flex min-h-11 items-center text-[1.35rem] font-medium tracking-[-0.035em] text-ink">
+            butler bets<span className="text-accent">.</span>
           </Link>
-          <Link
-            href="/leaderboard"
-            className="text-sm font-medium text-[#71717A] transition-colors hover:text-[#18181B]"
-          >
-            Leaderboard
-          </Link>
-          <span className="hidden max-w-[180px] truncate text-xs text-[#71717A] sm:block">
-            {email}
-          </span>
+          <NavLinks />
+        </div>
+        <div className="flex items-center gap-3 sm:gap-5">
+          <span className="hidden max-w-48 truncate text-xs text-ink-faint lg:block">{email}</span>
           <form action={signOut}>
             <button
               type="submit"
-              className="text-sm text-[#71717A] transition-colors hover:text-[#18181B]"
+              className="min-h-11 px-1 text-xs font-semibold text-ink-soft underline decoration-transparent underline-offset-4 transition-colors hover:text-ink hover:decoration-line-strong"
             >
               Sign out
             </button>
           </form>
+        </div>
+      </div>
+      <div className="border-t sm:hidden">
+        <div className="page-shell">
+          <NavLinks mobile />
         </div>
       </div>
     </header>

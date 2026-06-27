@@ -17,125 +17,89 @@ export default async function LeaderboardPage() {
     .select('id, email, crowns')
     .order('crowns', { ascending: false })
 
-  const myRank = users ? users.findIndex((u) => u.id === user.id) + 1 : 0
-  const myRow = users ? users.find((u) => u.id === user.id) : null
-  const myProfit = myRow ? Number(myRow.crowns) - STARTING_CROWNS : 0
-
-  const podiumStyle: Record<number, string> = {
-    1: 'bg-[#FDF8EC] border-[#F0D080]/40',
-    2: 'bg-[#F5F5F5] border-[#C8C4BE]/40',
-    3: 'bg-[#FDF4EE] border-[#D4A882]/40',
-  }
+  const myRank = users ? users.findIndex((entry) => entry.id === user.id) + 1 : 0
+  const myRow = users?.find((entry) => entry.id === user.id)
 
   return (
     <>
       <Nav email={user.email ?? ''} />
-      <main className="mx-auto max-w-5xl px-8 py-16">
-        {/* Header */}
-        <div className="mb-14">
-          <h1 className="font-display text-7xl leading-none text-[#18181B]">Leaderboard</h1>
-          <p className="mt-4 text-base text-[#71717A]">Ranked by current crown balance.</p>
-        </div>
-
-        {/* Your rank banner */}
-        {myRow && !error && (
-          <div className="mb-8 flex items-center justify-between rounded-2xl border border-[#4A86C5]/20 bg-[#4A86C5]/5 px-8 py-5">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-widest text-[#4A86C5]">Your standing</p>
-              <p className="mt-1 text-2xl font-semibold text-[#18181B]">
-                #{myRank} of {users?.length ?? 0}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs font-medium uppercase tracking-widest text-[#71717A]">Balance</p>
-              <p className="mt-1 text-2xl font-semibold text-[#18181B]">
-                {Number(myRow.crowns).toFixed(2)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs font-medium uppercase tracking-widest text-[#71717A]">Profit</p>
-              <p className={`mt-1 text-2xl font-semibold ${myProfit >= 0 ? 'text-[#2E7D5B]' : 'text-[#C0413B]'}`}>
-                {myProfit >= 0 ? '+' : ''}{myProfit.toFixed(2)}
-              </p>
-            </div>
+      <main className="page-shell py-10 sm:py-14">
+        <header className="grid gap-8 border-b border-line-strong pb-8 md:grid-cols-[minmax(0,1fr)_18rem] md:items-end">
+          <div>
+            <p className="eyebrow mb-4">Season standings</p>
+            <h1 className="page-title">Leaderboard</h1>
+            <p className="mt-4 max-w-xl text-base leading-7 text-ink-soft">
+              Ranked by current crown balance. Correct calls compound; conviction moves the board.
+            </p>
           </div>
-        )}
+          {myRow && !error && (
+            <dl className="font-numeric grid grid-cols-2 border-y border-line-strong text-sm">
+              <div className="border-r py-3 pr-4">
+                <dt className="eyebrow">Your rank</dt>
+                <dd className="mt-2 text-xl font-semibold">{String(myRank).padStart(2, '0')} <span className="text-xs font-normal text-ink-faint">/ {users?.length}</span></dd>
+              </div>
+              <div className="py-3 pl-4 text-right">
+                <dt className="eyebrow">Balance</dt>
+                <dd className="mt-2 text-xl font-semibold">{Number(myRow.crowns).toFixed(2)}</dd>
+              </div>
+            </dl>
+          )}
+        </header>
 
-        {error ? (
-          <p className="text-sm text-[#C0413B]">Failed to load leaderboard: {error.message}</p>
-        ) : !users || users.length === 0 ? (
-          <p className="text-[#71717A]">No players yet.</p>
-        ) : (
-          <div className="overflow-hidden rounded-2xl border border-[#EAE7E1]">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[#EAE7E1] bg-white">
-                  <th className="w-20 px-8 py-5 text-left text-xs font-semibold uppercase tracking-widest text-[#71717A]">Rank</th>
-                  <th className="px-8 py-5 text-left text-xs font-semibold uppercase tracking-widest text-[#71717A]">Player</th>
-                  <th className="px-8 py-5 text-right text-xs font-semibold uppercase tracking-widest text-[#71717A]">Crowns</th>
-                  <th className="px-8 py-5 text-right text-xs font-semibold uppercase tracking-widest text-[#71717A]">Profit</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u, i) => {
-                  const rank = i + 1
-                  const isMe = u.id === user.id
-                  const profit = Number(u.crowns) - STARTING_CROWNS
-                  const isPodium = rank <= 3
-                  return (
-                    <tr
-                      key={u.id}
-                      className={`border-b border-[#EAE7E1] last:border-0 transition-colors ${
-                        isMe
-                          ? 'bg-[#4A86C5]/5'
-                          : isPodium
-                            ? podiumStyle[rank]
-                            : 'bg-white hover:bg-[#FBFAF8]'
-                      }`}
-                    >
-                      <td className={`px-8 py-6 ${isMe ? 'border-l-4 border-[#4A86C5]' : ''}`}>
-                        <span className={`font-display text-3xl font-light ${
-                          rank === 1 ? 'text-[#C4A000]'
-                          : rank === 2 ? 'text-[#8A8A8A]'
-                          : rank === 3 ? 'text-[#B5713A]'
-                          : 'text-[#C8C4BE]'
-                        }`}>
-                          {String(rank).padStart(2, '0')}
-                        </span>
-                      </td>
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className={`truncate text-sm ${
-                              isMe ? 'font-semibold text-[#4A86C5]' : 'font-medium text-[#18181B]'
-                            }`}
-                          >
-                            {u.email ?? '—'}
-                          </span>
-                          {isMe && (
-                            <span className="shrink-0 rounded-full bg-[#4A86C5] px-2.5 py-0.5 text-xs font-semibold text-white">
-                              you
+        <section className="pt-7" aria-labelledby="ranking-title">
+          <div className="mb-3 flex items-end justify-between">
+            <h2 id="ranking-title" className="font-display text-2xl font-medium tracking-[-0.025em]">All traders</h2>
+            <p className="font-numeric text-xs text-ink-faint">Starting balance: 1,000</p>
+          </div>
+
+          {error ? (
+            <p className="border-l-2 border-danger bg-danger-soft px-4 py-3 text-sm text-danger" role="alert">
+              Failed to load leaderboard: {error.message}
+            </p>
+          ) : !users || users.length === 0 ? (
+            <p className="border-y border-line-strong py-12 text-center text-ink-soft">No traders yet.</p>
+          ) : (
+            <div className="border-y border-line-strong">
+              <table className="font-numeric w-full table-fixed" aria-label="Trader rankings">
+                <thead>
+                  <tr className="border-b text-left">
+                    <th className="w-[15%] px-2 py-3 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-ink-faint sm:w-24 sm:px-4">Rank</th>
+                    <th className="w-[39%] px-2 py-3 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-ink-faint sm:px-4">Trader</th>
+                    <th className="w-[23%] px-2 py-3 text-right text-[0.625rem] font-bold uppercase tracking-[0.1em] text-ink-faint sm:px-4">Crowns</th>
+                    <th className="w-[23%] px-2 py-3 text-right text-[0.625rem] font-bold uppercase tracking-[0.1em] text-ink-faint sm:px-4">Change</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((entry, index) => {
+                    const rank = index + 1
+                    const isMe = entry.id === user.id
+                    const profit = Number(entry.crowns) - STARTING_CROWNS
+
+                    return (
+                      <tr key={entry.id} className={`border-b last:border-0 ${isMe ? 'bg-accent-soft' : 'transition-colors hover:bg-surface'}`}>
+                        <td className={`px-2 py-4 sm:px-4 ${isMe ? 'border-l-2 border-accent' : ''}`}>
+                          <span className="text-base font-semibold sm:text-lg">{String(rank).padStart(2, '0')}</span>
+                        </td>
+                        <td className="px-2 py-4 sm:px-4">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className={`min-w-0 truncate text-xs sm:text-sm ${isMe ? 'font-bold text-accent' : 'font-medium text-ink'}`}>
+                              {entry.email ?? '—'}
                             </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 text-right">
-                        <span className="text-sm font-semibold text-[#18181B]">
-                          {Number(u.crowns).toFixed(2)}
-                        </span>
-                      </td>
-                      <td className="px-8 py-6 text-right">
-                        <span className={`text-sm font-semibold ${profit >= 0 ? 'text-[#2E7D5B]' : 'text-[#C0413B]'}`}>
+                            {isMe && <span className="shrink-0 text-[0.6rem] font-bold uppercase tracking-[0.1em] text-accent">You</span>}
+                          </div>
+                        </td>
+                        <td className="px-2 py-4 text-right text-xs font-semibold sm:px-4 sm:text-sm">{Number(entry.crowns).toFixed(2)}</td>
+                        <td className={`px-2 py-4 text-right text-xs font-semibold sm:px-4 sm:text-sm ${profit >= 0 ? 'text-accent' : 'text-danger'}`}>
                           {profit >= 0 ? '+' : ''}{profit.toFixed(2)}
-                        </span>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </main>
     </>
   )

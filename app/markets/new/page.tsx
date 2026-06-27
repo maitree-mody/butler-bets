@@ -14,9 +14,21 @@ export default async function NewMarketPage() {
   return (
     <>
       <Nav email={user.email ?? ''} />
-      <main className="mx-auto max-w-xl px-8 py-16">
-        <h1 className="font-display mb-12 text-6xl text-[#18181B]">New market</h1>
-        <CreateMarketForm />
+      <main className="page-shell py-10 sm:py-14">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_36rem] lg:gap-16">
+          <header>
+            <p className="eyebrow mb-4">Market desk</p>
+            <h1 className="page-title">Create a market</h1>
+            <p className="mt-5 max-w-md text-base leading-7 text-ink-soft">
+              Frame a question with a clear YES or NO outcome, define how it resolves, and set the closing bell.
+            </p>
+            <div className="mt-8 border-y border-line-strong py-4 text-sm text-ink-soft">
+              <p className="font-semibold text-ink">Write for settlement, not debate.</p>
+              <p className="mt-1 leading-6">The strongest markets are specific, time-bound, and independently verifiable.</p>
+            </div>
+          </header>
+          <CreateMarketForm />
+        </div>
       </main>
     </>
   )

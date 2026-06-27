@@ -1,23 +1,121 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FBFAF8;
-  --foreground: #18181B;
+  --canvas: #f1f8fc;
+  --surface: #f8fcff;
+  --surface-muted: #e5f1f8;
+  --surface-strong: #ffffff;
+  --ink: #122b3a;
+  --ink-soft: #4b6371;
+  --ink-faint: #718896;
+  --line: #cfe0ea;
+  --line-strong: #9dbdce;
+  --accent: #2f78a2;
+  --accent-hover: #245f82;
+  --accent-soft: #dcecf6;
+  --danger: #9b3f36;
+  --danger-soft: #f5e9e6;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --shadow-float: 0 16px 40px rgb(23 25 22 / 0.08);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-strong: var(--surface-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
   --font-sans: var(--font-inter);
+  --font-serif: var(--font-fraunces);
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  background: var(--canvas);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--canvas);
+  color: var(--ink);
   font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
 }
 
-/* Fraunces serif — used for the app name, headings, and market questions */
 .font-display {
   font-family: var(--font-fraunces), Georgia, serif;
+}
+
+.font-numeric {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.page-shell {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+}
+
+.display-title {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(2.25rem, 5vw, 4.5rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.page-title {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+
+.eyebrow {
+  color: var(--ink-soft);
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--surface-strong);
+}
+
+:where(a, button, input, textarea, select):focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 3px;
+}
+
+:where(button, [role="button"]):not(:disabled) {
+  cursor: pointer;
+}
+
+input,
+textarea,
+button {
+  font: inherit;
+}
+
+@media (min-width: 640px) {
+  .page-shell {
+    width: min(100% - 3rem, 72rem);
+  }
 }
