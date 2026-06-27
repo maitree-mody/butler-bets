@@ -28,15 +28,12 @@ function fmtPct(value: number) {
 
 export default function PriceChart({ points }: { points: PricePoint[] }) {
   return (
-    <section className="mt-8 border border-line-strong bg-surface" aria-labelledby="price-history-title">
-      <div className="flex items-end justify-between border-b bg-surface-muted px-4 py-3 sm:px-5">
-        <div>
-          <p className="eyebrow">Price history</p>
-          <h2 id="price-history-title" className="font-display mt-1 text-2xl font-medium tracking-[-0.025em]">YES contract</h2>
-        </div>
-        <p className="font-numeric text-xs text-ink-faint">0–100¢</p>
+    <section className="mt-6 overflow-hidden rounded-xl border border-line bg-white" aria-labelledby="price-history-title">
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <h2 id="price-history-title" className="text-sm font-semibold text-ink">YES price history</h2>
+        <p className="font-numeric text-xs text-ink-soft">0–100¢</p>
       </div>
-      <div className="h-64 w-full border-l-2 border-l-accent bg-surface-raised px-2 py-4 sm:h-72 sm:px-4">
+      <div className="h-56 w-full px-2 py-4 sm:h-64 sm:px-4">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={points} margin={{ top: 4, right: 14, bottom: 4, left: 2 }}>
             <CartesianGrid vertical={false} stroke="var(--line)" strokeDasharray="2 5" />

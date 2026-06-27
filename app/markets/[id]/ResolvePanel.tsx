@@ -25,14 +25,14 @@ export default function ResolvePanel({ marketId }: { marketId: string }) {
   }
 
   return (
-    <section className="border border-line-strong bg-surface p-4">
-      <p className="eyebrow mb-3">Admin settlement</p>
+    <section className="rounded-xl border border-line bg-white p-4">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Admin settlement</p>
       <div className="flex gap-2">
         <button
           type="button"
           onClick={() => handleResolve('yes')}
           disabled={isPending}
-          className="pressable min-h-11 flex-1 border border-accent px-2 text-xs font-bold text-accent hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="pressable flex-1 rounded-lg border border-accent py-2.5 text-sm font-bold text-accent transition-colors hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isPending && pendingRes === 'yes' ? 'Resolving…' : 'Resolve YES'}
         </button>
@@ -40,12 +40,12 @@ export default function ResolvePanel({ marketId }: { marketId: string }) {
           type="button"
           onClick={() => handleResolve('no')}
           disabled={isPending}
-          className="pressable min-h-11 flex-1 border border-danger px-2 text-xs font-bold text-danger hover:bg-danger hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="pressable flex-1 rounded-lg border border-danger py-2.5 text-sm font-bold text-danger transition-colors hover:bg-danger hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isPending && pendingRes === 'no' ? 'Resolving…' : 'Resolve NO'}
         </button>
       </div>
-      {error && <p className="mt-3 border-l-2 border-danger bg-danger-soft px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
+      {error && <p className="mt-3 rounded-lg border border-danger bg-danger-soft px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
     </section>
   )
 }
