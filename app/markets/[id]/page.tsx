@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { priceYes } from '@/lib/lmsr'
 import TradePanel from './TradePanel'
+import ResolvePanel from './ResolvePanel'
 
 export default async function MarketPage({
   params,
@@ -18,11 +19,18 @@ export default async function MarketPage({
 
   if (!user) redirect('/login')
 
-  const { data: market } = await supabase
-    .from('markets')
-    .select('id, question, description, closes_at, status, b, q_yes, q_no')
-    .eq('id', id)
-    .single()
+  const [{ data: market }, { data: profile }] = await Promise.all([
+    supabase
+      .from('markets')
+      .select('id, question, description, closes_at, status, b, q_yes, q_no, resolution, resolved_at')
+      .eq('id', id)
+      .single(),
+    supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single(),
+  ])
 
   if (!market) {
     return (
@@ -34,6 +42,9 @@ export default async function MarketPage({
       </main>
     )
   }
+
+  const isAdmin = (profile as { is_admin?: boolean } | null)?.is_admin ?? false
+  const isResolved = market.status === 'resolved'
 
   const yesProb = priceYes(Number(market.q_yes), Number(market.q_no), Number(market.b))
   const yesPct = Math.round(yesProb * 100)
@@ -88,12 +99,45 @@ export default async function MarketPage({
         <span>b: {market.b}</span>
       </div>
 
-      <TradePanel
-        marketId={market.id}
-        qYes={Number(market.q_yes)}
-        qNo={Number(market.q_no)}
-        b={Number(market.b)}
-      />
+      {isResolved ? (
+        <div
+          className={`mb-6 rounded-xl border p-5 text-center ${
+            market.resolution === 'yes'
+              ? 'border-green-200 bg-green-50'
+              : 'border-red-200 bg-red-50'
+          }`}
+        >
+          <p
+            className={`text-2xl font-bold ${
+              market.resolution === 'yes' ? 'text-green-600' : 'text-red-500'
+            }`}
+          >
+            Resolved: {market.resolution?.toUpperCase()}
+          </p>
+          {market.resolved_at && (
+            <p className="mt-1 text-sm text-gray-500">
+              {new Date(market.resolved_at).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </p>
+          )}
+        </div>
+      ) : (
+        <TradePanel
+          marketId={market.id}
+          qYes={Number(market.q_yes)}
+          qNo={Number(market.q_no)}
+          b={Number(market.b)}
+        />
+      )}
+
+      {isAdmin && !isResolved && (
+        <div className="mt-6">
+          <ResolvePanel marketId={market.id} />
+        </div>
+      )}
     </main>
   )
 }
