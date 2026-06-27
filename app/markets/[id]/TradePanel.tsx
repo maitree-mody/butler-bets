@@ -52,10 +52,13 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
   }
 
   return (
-    <section className="border border-line-strong bg-surface-strong" aria-labelledby="trade-ticket-title">
+    <section id="trade-ticket" className="scroll-mt-20 border border-line-strong border-t-2 border-t-accent bg-surface-raised" aria-labelledby="trade-ticket-title">
       <div className="flex items-center justify-between border-b px-4 py-3 sm:px-5">
         <div>
-          <p className="eyebrow">Order entry</p>
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 bg-accent" aria-hidden="true" />
+            <p className="eyebrow">Order entry</p>
+          </div>
           <h2 id="trade-ticket-title" className="mt-1 text-base font-semibold tracking-[-0.02em]">Trade ticket</h2>
         </div>
         <div className="text-right">
@@ -72,8 +75,8 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
               type="button"
               aria-pressed={side === 'yes'}
               onClick={() => setSide('yes')}
-              className={`min-h-12 border-r px-3 text-left transition-colors ${
-                side === 'yes' ? 'bg-accent text-white' : 'bg-surface text-ink hover:bg-accent-soft'
+              className={`pressable min-h-12 border-r px-3 text-left ${
+                side === 'yes' ? 'bg-accent text-white' : 'bg-surface text-ink hover:bg-surface-active'
               }`}
             >
               <span className="block text-[0.6875rem] font-bold uppercase tracking-[0.1em]">Yes</span>
@@ -83,7 +86,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
               type="button"
               aria-pressed={side === 'no'}
               onClick={() => setSide('no')}
-              className={`min-h-12 px-3 text-left transition-colors ${
+              className={`pressable min-h-12 px-3 text-left ${
                 side === 'no' ? 'bg-ink text-white' : 'bg-surface text-ink hover:bg-surface-muted'
               }`}
             >
@@ -95,7 +98,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
 
         <div className="mt-5">
           <label className="eyebrow mb-2 block" htmlFor="shares-input">Quantity</label>
-          <div className="flex min-h-12 border border-line-strong bg-surface focus-within:border-accent">
+          <div className="flex min-h-12 border border-line-strong bg-surface transition-colors duration-150 focus-within:border-accent focus-within:bg-surface-raised">
             <input
               id="shares-input"
               type="number"
@@ -111,27 +114,27 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
         </div>
 
         <dl className="font-numeric mt-5 divide-y border-y text-sm">
-          <div className="flex items-center justify-between py-2.5">
+          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
             <dt className="text-ink-soft">Selected side</dt>
             <dd className="font-semibold">{side.toUpperCase()} @ {Math.round(currentSidePrice * 100)}¢</dd>
           </div>
-          <div className="flex items-center justify-between py-2.5">
+          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
             <dt className="text-ink-soft">Estimated cost</dt>
             <dd className="font-semibold">{previewCost.toFixed(2)} crowns</dd>
           </div>
-          <div className="flex items-center justify-between py-2.5">
+          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
             <dt className="text-ink-soft">Price after order</dt>
             <dd className="font-semibold">{Math.round(newSidePrice * 100)}¢</dd>
           </div>
-          <div className="flex items-center justify-between py-2.5">
+          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
             <dt className="text-ink-soft">Payout if correct</dt>
             <dd className="font-semibold">{estimatedPayout.toFixed(2)} crowns</dd>
           </div>
-          <div className="flex items-center justify-between py-2.5">
+          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
             <dt className="text-ink-soft">Potential profit</dt>
             <dd className="font-semibold text-accent">+{Math.max(0, potentialProfit).toFixed(2)}</dd>
           </div>
-          <div className="flex items-center justify-between py-2.5">
+          <div className="flex items-center justify-between px-1 py-2.5 transition-colors hover:bg-surface">
             <dt className="text-ink-soft">Balance after</dt>
             <dd className={`font-semibold ${balanceAfter < 0 ? 'text-danger' : 'text-ink'}`}>{balanceAfter.toFixed(2)}</dd>
           </div>
@@ -141,7 +144,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
           type="button"
           onClick={handleTrade}
           disabled={isPending || validShares === 0}
-          className={`mt-5 min-h-12 w-full px-4 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-faint ${
+          className={`pressable mt-5 min-h-12 w-full px-4 text-sm font-bold disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-faint ${
             side === 'yes' ? 'bg-accent text-white hover:bg-accent-hover' : 'bg-ink text-white hover:bg-accent'
           }`}
         >

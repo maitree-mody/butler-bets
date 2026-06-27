@@ -32,7 +32,7 @@ export default function ResolvePanel({ marketId }: { marketId: string }) {
           type="button"
           onClick={() => handleResolve('yes')}
           disabled={isPending}
-          className="min-h-11 flex-1 border border-accent px-2 text-xs font-bold text-accent transition-colors hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="pressable min-h-11 flex-1 border border-accent px-2 text-xs font-bold text-accent hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isPending && pendingRes === 'yes' ? 'Resolving…' : 'Resolve YES'}
         </button>
@@ -40,7 +40,7 @@ export default function ResolvePanel({ marketId }: { marketId: string }) {
           type="button"
           onClick={() => handleResolve('no')}
           disabled={isPending}
-          className="min-h-11 flex-1 border border-danger px-2 text-xs font-bold text-danger transition-colors hover:bg-danger hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="pressable min-h-11 flex-1 border border-danger px-2 text-xs font-bold text-danger hover:bg-danger hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isPending && pendingRes === 'no' ? 'Resolving…' : 'Resolve NO'}
         </button>
