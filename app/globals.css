@@ -1,29 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  --canvas: #f1f8fc;
-  --surface: #f8fcff;
-  --surface-muted: #e5f1f8;
+  --canvas: #63C8FF;
+  --surface: #ffffff;
+  --surface-muted: #FDFFB8;
+  --surface-raised: #ffffff;
+  --surface-active: #4dffbe;
   --surface-strong: #ffffff;
-  --ink: #122b3a;
-  --ink-soft: #4b6371;
-  --ink-faint: #718896;
-  --line: #cfe0ea;
-  --line-strong: #9dbdce;
-  --accent: #2f78a2;
-  --accent-hover: #245f82;
-  --accent-soft: #dcecf6;
+  --ink: #17121c;
+  --ink-soft: #433a49;
+  --ink-faint: #625769;
+  --line: #a6a873;
+  --line-strong: #54583c;
+  --accent: #ff2dd1;
+  --accent-hover: #db1bb0;
+  --accent-soft: #ffd9f7;
+  --positive: #08734d;
+  --positive-soft: #4dffbe;
   --danger: #9b3f36;
   --danger-soft: #f5e9e6;
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
-  --shadow-float: 0 16px 40px rgb(23 25 22 / 0.08);
+  --duration-fast: 140ms;
+  --duration-medium: 280ms;
+  --ease-product: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 @theme inline {
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-active: var(--surface-active);
   --color-surface-strong: var(--surface-strong);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
@@ -33,6 +41,8 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
+  --color-positive: var(--positive);
+  --color-positive-soft: var(--positive-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --font-sans: var(--font-inter);
@@ -45,6 +55,7 @@
 
 html {
   background: var(--canvas);
+  scroll-behavior: smooth;
 }
 
 body {
@@ -94,6 +105,104 @@ body {
   text-transform: uppercase;
 }
 
+.interactive-row {
+  position: relative;
+  background: var(--surface);
+  transition:
+    background-color var(--duration-fast) var(--ease-product),
+    border-color var(--duration-fast) var(--ease-product);
+}
+
+.interactive-row::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--accent);
+  content: "";
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform var(--duration-fast) var(--ease-product);
+}
+
+.interactive-row:hover,
+.interactive-row:focus-within {
+  background: var(--surface-raised);
+}
+
+.interactive-row:hover::before,
+.interactive-row:focus-within::before {
+  transform: scaleY(1);
+}
+
+.quote-cell {
+  position: relative;
+  background: var(--surface-strong);
+  transition:
+    background-color var(--duration-fast) var(--ease-product),
+    color var(--duration-fast) var(--ease-product);
+}
+
+.quote-cell::after {
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: var(--accent);
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-fast) var(--ease-product);
+}
+
+.quote-cell:hover,
+.quote-cell:focus-visible {
+  background: var(--surface-active);
+}
+
+.quote-cell:active {
+  background: var(--accent-soft);
+}
+
+.quote-cell:hover::after,
+.quote-cell:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.pressable {
+  transition:
+    background-color var(--duration-fast) var(--ease-product),
+    color var(--duration-fast) var(--ease-product),
+    border-color var(--duration-fast) var(--ease-product),
+    transform 80ms ease-out;
+}
+
+.pressable:active {
+  transform: translateY(1px);
+}
+
+.reveal {
+  animation: section-enter var(--duration-medium) var(--ease-product) both;
+}
+
+.reveal-delay-1 {
+  animation-delay: 70ms;
+}
+
+.reveal-delay-2 {
+  animation-delay: 140ms;
+}
+
+@keyframes section-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 ::selection {
   background: var(--accent);
   color: var(--surface-strong);
@@ -117,5 +226,19 @@ button {
 @media (min-width: 640px) {
   .page-shell {
     width: min(100% - 3rem, 72rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
