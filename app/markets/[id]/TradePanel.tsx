@@ -34,12 +34,14 @@ export default function TradePanel({ marketId, qYes, qNo, b }: TradePanelProps) 
     setResult(null)
     setError(null)
     startTransition(async () => {
-      try {
-        const res = await executeTradeAction(marketId, side, validShares)
-        setResult(res.message)
+      const res = await executeTradeAction(marketId, side, validShares)
+      if ('error' in res) {
+        setError(res.error)
+      } else {
+        setResult(
+          `Bought ${validShares} ${side.toUpperCase()} for ${res.data.cost.toFixed(2)} crowns. Balance: ${res.data.new_crowns.toFixed(2)} crowns.`,
+        )
         router.refresh()
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Something went wrong.')
       }
     })
   }
