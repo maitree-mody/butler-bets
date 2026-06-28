@@ -43,54 +43,66 @@ export default async function LeaderboardPage() {
     <>
       <Nav email={user.email ?? ''} />
       <main className="page-shell py-8 sm:py-10">
-        <header className="reveal mb-6 border-b border-line pb-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+
+        {/* Header */}
+        <header className="reveal mb-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-ink-soft">Season standings</p>
-              <h1 className="font-display mt-2 text-4xl font-bold tracking-tight text-ink">Leaderboard</h1>
-              <p className="mt-2 text-sm text-ink-soft">
+              <p className="eyebrow mb-2">Season standings</p>
+              <h1 className="font-display text-3xl font-bold tracking-tight text-columbia-deep sm:text-4xl">
+                Leaderboard
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground">
                 Ranked by profit from a 1,000-crown starting balance.
               </p>
             </div>
+
+            {/* Rank summary card */}
             {myRow && !error && (
-              <dl className="font-numeric flex gap-6 rounded-xl border border-line bg-accent-soft px-5 py-4">
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Your rank</dt>
-                  <dd className="mt-1 text-2xl font-bold text-ink">
-                    #{myRank} <span className="text-sm font-normal text-ink-soft">/ {rankedUsers.length}</span>
-                  </dd>
+              <div className="font-numeric shrink-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <div className="flex gap-6">
+                  <div>
+                    <p className="eyebrow mb-1">Your rank</p>
+                    <p className="text-2xl font-bold text-columbia-deep">
+                      #{myRank}
+                      <span className="ml-1 text-sm font-normal text-muted-foreground">/ {rankedUsers.length}</span>
+                    </p>
+                  </div>
+                  <div className="border-l border-border pl-6">
+                    <p className="eyebrow mb-1">Your profit</p>
+                    <p className={`text-2xl font-bold ${myRow.profit >= 0 ? 'text-success' : 'text-danger'}`}>
+                      {myRow.profit >= 0 ? '+' : ''}{myRow.profit.toFixed(2)}
+                    </p>
+                  </div>
                 </div>
-                <div className="border-l border-line pl-6">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Your profit</dt>
-                  <dd className={`mt-1 text-2xl font-bold ${myRow.profit >= 0 ? 'text-positive' : 'text-danger'}`}>
-                    {myRow.profit >= 0 ? '+' : ''}{myRow.profit.toFixed(2)}
-                  </dd>
-                </div>
-              </dl>
+              </div>
             )}
           </div>
         </header>
 
+        {/* Table */}
         <section className="reveal reveal-delay-1" aria-labelledby="ranking-title">
-          <h2 id="ranking-title" className="mb-3 text-sm font-semibold uppercase tracking-widest text-ink-soft">
+          <h2 id="ranking-title" className="eyebrow mb-3">
             Top {Math.min(LEADERBOARD_LIMIT, rankedUsers.length)} traders
           </h2>
 
           {error ? (
-            <p className="rounded-lg border border-danger bg-danger-soft px-4 py-3 text-sm text-danger" role="alert">
+            <p className="rounded-xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger" role="alert">
               Failed to load leaderboard: {error.message}
             </p>
           ) : rankedUsers.length === 0 ? (
-            <p className="rounded-xl border border-line py-12 text-center text-ink-soft">No traders yet.</p>
+            <p className="rounded-xl border border-border py-12 text-center text-sm text-muted-foreground">
+              No traders yet.
+            </p>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-line">
+            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
               <table className="font-numeric w-full table-fixed" aria-label="Trader rankings">
                 <thead>
-                  <tr className="border-b bg-surface-muted text-left">
-                    <th className="w-16 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Rank</th>
-                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Trader</th>
-                    <th className="w-20 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-ink-soft">Trades</th>
-                    <th className="w-28 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-ink-soft">Profit</th>
+                  <tr className="border-b border-border bg-muted/60">
+                    <th className="w-16 px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Rank</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Trader</th>
+                    <th className="w-20 px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Trades</th>
+                    <th className="w-28 px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Profit</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -101,27 +113,37 @@ export default async function LeaderboardPage() {
                     return (
                       <tr
                         key={entry.id}
-                        className={`border-b last:border-0 ${isMe ? 'bg-accent-soft' : 'bg-white hover:bg-surface-muted'}`}
+                        className={`border-b border-border last:border-0 transition-colors ${
+                          isMe ? 'bg-columbia-soft/50' : 'hover:bg-muted/40'
+                        }`}
                       >
                         <td className="px-4 py-3.5">
-                          <span className={`text-base font-bold ${rank <= 3 ? 'text-accent' : 'text-ink-soft'}`}>
+                          <span className={`text-sm font-bold ${
+                            rank <= 3 ? 'text-columbia' : 'text-foreground'
+                          }`}>
                             #{rank}
                           </span>
                         </td>
                         <td className="px-4 py-3.5">
                           <div className="flex min-w-0 items-center gap-2">
-                            <span className={`min-w-0 truncate text-sm font-semibold ${isMe ? 'text-accent' : 'text-ink'}`}>
+                            <span className={`min-w-0 truncate text-sm font-semibold ${
+                              isMe ? 'text-columbia' : 'text-foreground'
+                            }`}>
                               {entry.displayName}
                             </span>
                             {isMe && (
-                              <span className="shrink-0 rounded-full bg-[#FFF98B] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-ink">
+                              <span className="shrink-0 rounded-full bg-columbia-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-columbia">
                                 you
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3.5 text-right text-sm font-semibold text-ink-soft">{entry.tradeCount}</td>
-                        <td className={`px-4 py-3.5 text-right text-sm font-bold ${entry.profit >= 0 ? 'text-positive' : 'text-danger'}`}>
+                        <td className="px-4 py-3.5 text-right text-sm text-muted-foreground">
+                          {entry.tradeCount}
+                        </td>
+                        <td className={`px-4 py-3.5 text-right text-sm font-bold ${
+                          entry.profit >= 0 ? 'text-success' : 'text-danger'
+                        }`}>
                           {entry.profit >= 0 ? '+' : ''}{entry.profit.toFixed(2)}
                         </td>
                       </tr>
@@ -129,17 +151,21 @@ export default async function LeaderboardPage() {
                   })}
                 </tbody>
                 {myRow && !isCurrentUserInTop && (
-                  <tfoot className="border-t-2 border-accent bg-accent-soft">
+                  <tfoot className="border-t-2 border-columbia/20 bg-columbia-soft/40">
                     <tr>
-                      <td className="px-4 py-3 text-sm font-bold text-accent">#{myRank}</td>
+                      <td className="px-4 py-3 text-sm font-bold text-columbia">#{myRank}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-accent">{myRow.displayName}</span>
-                          <span className="rounded-full bg-[#FFF98B] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-ink">you</span>
+                          <span className="text-sm font-semibold text-columbia">{myRow.displayName}</span>
+                          <span className="rounded-full bg-columbia-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-columbia">
+                            you
+                          </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-right text-sm font-semibold text-ink-soft">{myRow.tradeCount}</td>
-                      <td className={`px-4 py-3 text-right text-sm font-bold ${myRow.profit >= 0 ? 'text-positive' : 'text-danger'}`}>
+                      <td className="px-4 py-3 text-right text-sm text-muted-foreground">{myRow.tradeCount}</td>
+                      <td className={`px-4 py-3 text-right text-sm font-bold ${
+                        myRow.profit >= 0 ? 'text-success' : 'text-danger'
+                      }`}>
                         {myRow.profit >= 0 ? '+' : ''}{myRow.profit.toFixed(2)}
                       </td>
                     </tr>
