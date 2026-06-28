@@ -16,14 +16,18 @@ export default async function NewMarketPage() {
       <Nav email={user.email ?? ''} />
       <main className="page-shell py-10 sm:py-14">
         <div className="mx-auto max-w-xl">
-          <header className="mb-2">
-            <p className="text-xs font-semibold uppercase tracking-widest text-ink-soft">New market</p>
-            <h1 className="font-display mt-2 text-3xl font-bold tracking-tight text-ink">Create a market</h1>
-            <p className="mt-2 text-sm leading-6 text-ink-soft">
-              Frame a clear YES/NO question, define how it resolves, and set the closing date.
-            </p>
-          </header>
-          <CreateMarketForm />
+          <div className="rounded-2xl border border-border bg-card p-7 shadow-sm sm:p-8">
+            <header className="mb-7">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">New market</p>
+              <h1 className="font-display mt-2 text-2xl font-bold tracking-tight text-columbia-deep sm:text-3xl">
+                Create a market
+              </h1>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Frame a clear YES/NO question, define resolution criteria, and set the closing date.
+              </p>
+            </header>
+            <CreateMarketForm />
+          </div>
         </div>
       </main>
     </>
