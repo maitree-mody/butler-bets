@@ -1,4 +1,22 @@
+import { Crown } from 'lucide-react'
 import { signInWithGoogle } from '@/app/actions/auth'
+import { createClient } from '@/lib/supabase/server'
+
+async function getSocialProof() {
+  try {
+    const supabase = await createClient()
+    const [usersRes, marketsRes] = await Promise.all([
+      supabase.from('users').select('*', { count: 'exact', head: true }),
+      supabase.from('markets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+    ])
+    return {
+      traders: usersRes.count ?? 0,
+      openMarkets: marketsRes.count ?? 0,
+    }
+  } catch {
+    return { traders: 0, openMarkets: 0 }
+  }
+}
 
 export default async function LoginPage({
   searchParams,
@@ -6,18 +24,42 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string }>
 }) {
   const { error } = await searchParams
+  const { traders, openMarkets } = await getSocialProof()
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <p className="font-display text-2xl font-medium text-foreground">butler bets</p>
-          <p className="mt-1 text-sm text-muted-foreground">Columbia&apos;s prediction exchange</p>
+    <main className="relative flex min-h-screen flex-col items-center justify-center px-4 py-12">
+
+      {/* Background — shifted up so columns fill center, steps area behind card */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-no-repeat"
+        style={{
+          backgroundImage: 'url(/low-library.png)',
+          backgroundSize: '100% 143%',
+          backgroundPosition: '50% -60px',
+          opacity: 0.4,
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Content shifted down so card sits over the steps, not the statue */}
+      <div className="relative z-10 w-full max-w-sm translate-y-16">
+
+        {/* Standalone wordmark above card */}
+        <div className="mb-6 flex items-center justify-center gap-2.5">
+          <Crown className="h-6 w-6 shrink-0 text-columbia-deep" strokeWidth={2} />
+          <span className="font-display text-3xl font-bold tracking-tight text-columbia-deep">
+            butler bets
+          </span>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-8">
-          <h1 className="font-display text-2xl font-semibold text-foreground">What happens next?</h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Trade play-money contracts on campus events. Sign in with your Columbia or Barnard account.</p>
+        {/* Login card — solid white, floating shadow */}
+        <div className="rounded-2xl border border-border bg-white p-8 shadow-xl">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-[#0a0a0a]">
+            Join the market
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Trade play-money contracts on campus events. Sign in with your Columbia or Barnard account.
+          </p>
 
           {error && (
             <p className="mt-5 rounded-lg border border-danger/30 bg-danger/5 px-3 py-2.5 text-sm text-danger" role="alert">
@@ -28,7 +70,7 @@ export default async function LoginPage({
           <form action={signInWithGoogle} className="mt-6">
             <button
               type="submit"
-              className="pressable flex w-full items-center justify-between rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+              className="pressable flex w-full items-center justify-between rounded-lg bg-[#0f172a] px-4 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-85"
             >
               <span className="flex items-center gap-3">
                 <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
@@ -42,8 +84,20 @@ export default async function LoginPage({
               <span aria-hidden="true">→</span>
             </button>
           </form>
-          <p className="mt-4 text-xs text-muted-foreground">Limited to verified Columbia and Barnard email domains.</p>
+
+          <p className="mt-4 text-xs text-muted-foreground">
+            Limited to verified Columbia and Barnard email domains.
+          </p>
         </div>
+
+        {/* Social proof */}
+        {(traders > 0 || openMarkets > 0) && (
+          <p className="mt-5 text-center text-xs text-muted-foreground">
+            {traders > 0 && <span>{traders} student{traders !== 1 ? 's' : ''} trading</span>}
+            {traders > 0 && openMarkets > 0 && <span className="mx-2 opacity-40">·</span>}
+            {openMarkets > 0 && <span>{openMarkets} market{openMarkets !== 1 ? 's' : ''} open</span>}
+          </p>
+        )}
       </div>
     </main>
   )
