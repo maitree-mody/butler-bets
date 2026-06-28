@@ -28,7 +28,7 @@ export default async function LoginPage({
           <form action={signInWithGoogle} className="mt-6">
             <button
               type="submit"
-              className="pressable flex w-full items-center justify-between rounded-lg bg-columbia px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-columbia-deep"
+              className="pressable flex w-full items-center justify-between rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
             >
               <span className="flex items-center gap-3">
                 <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
