@@ -21,8 +21,11 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
   const [result, setResult] = useState<string | null>(null)
   const [error, setError]   = useState<string | null>(null)
 
+  const MAX_SHARES = 100_000
+
   const shares = parseInt(sharesInput, 10)
-  const validShares = !isNaN(shares) && shares > 0 ? shares : 0
+  const exceedsMax = !isNaN(shares) && shares > MAX_SHARES
+  const validShares = !isNaN(shares) && shares > 0 && !exceedsMax ? shares : 0
   const currentYesPrice  = priceYes(qYes, qNo, b)
   const currentSidePrice = side === 'yes' ? currentYesPrice : 1 - currentYesPrice
   const previewCost      = validShares > 0 ? tradeCost(qYes, qNo, b, side, validShares) : 0
@@ -108,11 +111,12 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
         >
           Quantity
         </label>
-        <div className="flex min-h-11 items-center rounded-xl border border-border bg-background transition-colors focus-within:border-columbia">
+        <div className={`flex min-h-11 items-center rounded-xl border bg-background transition-colors focus-within:border-columbia ${exceedsMax ? 'border-danger' : 'border-border'}`}>
           <input
             id="shares-input"
             type="number"
             min={1}
+            max={MAX_SHARES}
             step={1}
             inputMode="numeric"
             value={sharesInput}
@@ -121,6 +125,11 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
           />
           <span className="border-l border-border px-3 text-xs font-medium text-muted-foreground">shares</span>
         </div>
+        {exceedsMax ? (
+          <p className="mt-1.5 text-xs font-medium text-danger">Exceeds the 100,000 share limit</p>
+        ) : (
+          <p className="mt-1.5 text-xs text-muted-foreground">Max 100,000 shares per trade</p>
+        )}
       </div>
 
       {/* Order summary */}
@@ -146,7 +155,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
       <button
         type="button"
         onClick={handleTrade}
-        disabled={isPending || validShares === 0}
+        disabled={isPending || validShares === 0 || exceedsMax}
         className={`pressable w-full rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
           side === 'yes'
             ? 'bg-columbia shadow-columbia/25 hover:bg-columbia-deep'

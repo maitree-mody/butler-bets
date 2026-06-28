@@ -174,7 +174,8 @@ export default async function ProfilePage() {
                   <tbody>
                     {openPositions.map(pos => {
                       const m = pos.markets!
-                      const p = priceYes(Number(m.q_yes), Number(m.q_no), Number(m.b))
+                      const rawP = priceYes(Number(m.q_yes), Number(m.q_no), Number(m.b))
+                      const p = isFinite(rawP) ? rawP : 0.5
                       const value =
                         Number(pos.yes_shares) * p +
                         Number(pos.no_shares) * (1 - p)
@@ -214,9 +215,11 @@ export default async function ProfilePage() {
             >
               Recent activity
             </h2>
-            <span className="font-numeric text-sm text-muted-foreground">
-              last {recentTrades.length}
-            </span>
+            {recentTrades.length > 0 && (
+              <span className="font-numeric text-sm text-muted-foreground">
+                last {recentTrades.length}
+              </span>
+            )}
           </div>
 
           {recentTrades.length === 0 ? (

@@ -25,14 +25,14 @@ export default function ResolvePanel({ marketId }: { marketId: string }) {
   }
 
   return (
-    <section className="rounded-xl border border-line bg-white p-4">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Admin settlement</p>
+    <section className="rounded-2xl border border-border bg-card p-4">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Admin settlement</p>
       <div className="flex gap-2">
         <button
           type="button"
           onClick={() => handleResolve('yes')}
           disabled={isPending}
-          className="pressable flex-1 rounded-lg border border-accent py-2.5 text-sm font-bold text-accent transition-colors hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="pressable flex-1 rounded-lg border border-columbia py-2.5 text-sm font-bold text-columbia transition-colors hover:bg-columbia hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isPending && pendingRes === 'yes' ? 'Resolving…' : 'Resolve YES'}
         </button>
@@ -45,7 +45,7 @@ export default function ResolvePanel({ marketId }: { marketId: string }) {
           {isPending && pendingRes === 'no' ? 'Resolving…' : 'Resolve NO'}
         </button>
       </div>
-      {error && <p className="mt-3 rounded-lg border border-danger bg-danger-soft px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
+      {error && <p className="mt-3 rounded-lg border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
     </section>
   )
 }

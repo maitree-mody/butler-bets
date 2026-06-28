@@ -8,19 +8,19 @@ export default async function LoginPage({
   const { error } = await searchParams
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white px-4">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <p className="font-display text-2xl font-medium text-ink">butler bets</p>
-          <p className="mt-1 text-sm text-ink-soft">Columbia&apos;s prediction exchange</p>
+          <p className="font-display text-2xl font-medium text-foreground">butler bets</p>
+          <p className="mt-1 text-sm text-muted-foreground">Columbia&apos;s prediction exchange</p>
         </div>
 
-        <div className="rounded-2xl border border-line p-8">
-          <h1 className="font-display text-2xl font-semibold text-ink">What happens next?</h1>
-          <p className="mt-2 text-sm leading-6 text-ink-soft">Trade play-money contracts on campus events. Sign in with your Columbia or Barnard account.</p>
+        <div className="rounded-2xl border border-border bg-card p-8">
+          <h1 className="font-display text-2xl font-semibold text-foreground">What happens next?</h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Trade play-money contracts on campus events. Sign in with your Columbia or Barnard account.</p>
 
           {error && (
-            <p className="mt-5 rounded-lg border border-danger bg-danger-soft px-3 py-2.5 text-sm text-danger" role="alert">
+            <p className="mt-5 rounded-lg border border-danger/30 bg-danger/5 px-3 py-2.5 text-sm text-danger" role="alert">
               {error}
             </p>
           )}
@@ -28,7 +28,7 @@ export default async function LoginPage({
           <form action={signInWithGoogle} className="mt-6">
             <button
               type="submit"
-              className="pressable flex w-full items-center justify-between rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+              className="pressable flex w-full items-center justify-between rounded-lg bg-columbia px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-columbia-deep"
             >
               <span className="flex items-center gap-3">
                 <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
@@ -42,7 +42,7 @@ export default async function LoginPage({
               <span aria-hidden="true">→</span>
             </button>
           </form>
-          <p className="mt-4 text-xs text-ink-soft">Limited to verified Columbia and Barnard email domains.</p>
+          <p className="mt-4 text-xs text-muted-foreground">Limited to verified Columbia and Barnard email domains.</p>
         </div>
       </div>
     </main>

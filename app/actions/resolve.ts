@@ -15,6 +15,10 @@ export async function resolveMarketAction(
 
   if (!user) return { error: 'You must be logged in.' }
 
+  if (resolution !== 'yes' && resolution !== 'no') {
+    return { error: "Resolution must be 'yes' or 'no'." }
+  }
+
   const { data, error } = await supabase.rpc('resolve_market', {
     p_market_id: marketId,
     p_resolution: resolution,

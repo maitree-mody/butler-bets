@@ -62,6 +62,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
     .sort((a, b) => b.totalShares - a.totalShares)
     .slice(0, 3)
 
+  const isOpen     = market.status === 'open'
   const isResolved = market.status === 'resolved'
   const yesProb = priceYes(Number(market.q_yes), Number(market.q_no), Number(market.b))
   const yesPct = Math.round(yesProb * 100)
@@ -88,12 +89,12 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
           <div className="mt-5 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-7">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                market.status === 'open'
+                isOpen
                   ? 'bg-success/10 text-success'
                   : 'bg-muted text-muted-foreground'
               }`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${market.status === 'open' ? 'bg-success' : 'bg-muted-foreground'}`} />
-                {market.status === 'open' ? 'Open' : 'Resolved'}
+                <span className={`h-1.5 w-1.5 rounded-full ${isOpen ? 'bg-success' : 'bg-muted-foreground'}`} />
+                {market.status}
               </span>
               <span className="text-xs text-muted-foreground">·</span>
               <span className="text-xs text-muted-foreground">Expires {closeDate}</span>
@@ -193,24 +194,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
 
             {/* Right: trade panel */}
             <aside className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
-              {isResolved ? (
-                <div id="market-result" className="scroll-mt-20 rounded-2xl border border-border bg-card p-5 shadow-sm">
-                  <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Final result</p>
-                  <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${
-                    market.resolution === 'yes'
-                      ? 'border-columbia/25 bg-columbia-soft text-columbia'
-                      : 'border-danger/25 bg-danger/5 text-danger'
-                  }`}>
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${market.resolution === 'yes' ? 'bg-columbia' : 'bg-danger'}`} />
-                    {market.resolution?.toUpperCase()} won
-                  </div>
-                  {market.resolved_at && (
-                    <p className="mt-3 text-xs text-muted-foreground">
-                      Resolved {new Date(market.resolved_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </p>
-                  )}
-                </div>
-              ) : (
+              {isOpen ? (
                 <TradePanel
                   marketId={market.id}
                   qYes={Number(market.q_yes)}
@@ -218,8 +202,34 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                   b={Number(market.b)}
                   availableBalance={availableBalance}
                 />
+              ) : (
+                <div id="market-result" className="scroll-mt-20 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                  {isResolved ? (
+                    <>
+                      <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Final result</p>
+                      <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${
+                        market.resolution === 'yes'
+                          ? 'border-columbia/25 bg-columbia-soft text-columbia'
+                          : 'border-danger/25 bg-danger/5 text-danger'
+                      }`}>
+                        <span className={`h-2 w-2 shrink-0 rounded-full ${market.resolution === 'yes' ? 'bg-columbia' : 'bg-danger'}`} />
+                        {market.resolution?.toUpperCase()} won
+                      </div>
+                      {market.resolved_at && (
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          Resolved {new Date(market.resolved_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Trading closed</p>
+                      <p className="text-sm text-muted-foreground">This market is no longer accepting trades.</p>
+                    </>
+                  )}
+                </div>
               )}
-              {isAdmin && !isResolved && <ResolvePanel marketId={market.id} />}
+              {isAdmin && isOpen && <ResolvePanel marketId={market.id} />}
             </aside>
           </div>
         </div>

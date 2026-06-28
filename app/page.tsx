@@ -123,7 +123,7 @@ export default async function HomePage({
               className="pointer-events-none absolute -right-10 top-0 hidden h-[520px] w-auto object-contain opacity-25 lg:block"
             />
 
-            <h1 className="relative font-display text-6xl leading-[1.05] tracking-tight text-columbia-deep md:text-7xl">
+            <h1 className="relative font-display text-4xl leading-[1.05] tracking-tight text-columbia-deep sm:text-5xl md:text-6xl lg:text-7xl">
               Trade what<br />
               Columbia thinks<br />
               <em className="italic" style={{ fontFamily: 'var(--font-display)' }}>next.</em>
@@ -283,14 +283,10 @@ export default async function HomePage({
 
                     {/* Footer */}
                     <div className="mt-3 flex justify-between text-xs text-muted-foreground">
-                      {recentTrades > 0 ? (
-                        <span className={trend === 'up' ? 'text-success' : 'text-danger'}>
-                          {trend === 'up' ? '↑' : '↓'} {recentTrades}% in last 24h
-                        </span>
-                      ) : (
-                        <span>{isOpen ? 'Open' : 'Resolved'}</span>
+                      <span>{isOpen ? 'Open' : 'Resolved'}</span>
+                      {recentTrades > 0 && (
+                        <span className="text-success">{tradesLabel} trades today</span>
                       )}
-                      {recentTrades > 0 && <span>{tradesLabel} trades</span>}
                     </div>
                   </Link>
                 </li>

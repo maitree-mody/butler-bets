@@ -1,5 +1,21 @@
 'use server'
+
+/**
+ * executeTradeAction — validation checklist (auditable):
+ *  1. User is authenticated via Supabase session (no parameter trust).
+ *  2. `side` must be exactly 'yes' or 'no'.
+ *  3. `shares` must be a positive integer (rejects fractions, zero, negatives).
+ *  4. `shares` must not exceed MAX_SHARES (100 000) — guards against DoS via
+ *     huge LMSR cost computation and implausibly large position sizes.
+ *  5. Market must have status 'open' — enforced atomically inside execute_trade
+ *     SQL function (server action error-maps the rejection message).
+ *  6. User balance ≥ trade cost — enforced atomically inside execute_trade SQL
+ *     function with SELECT … FOR UPDATE row-locking (prevents race conditions).
+ */
+
 import { createClient } from '@/lib/supabase/server'
+
+const MAX_SHARES = 100_000
 
 type TradeResult =
   | { data: { q_yes: number; q_no: number; price_yes: number; cost: number; new_crowns: number } }
@@ -26,6 +42,10 @@ export async function executeTradeAction(
     return { error: 'Shares must be a positive whole number.' }
   }
 
+  if (shares > MAX_SHARES) {
+    return { error: `Share count cannot exceed ${MAX_SHARES.toLocaleString()} per trade.` }
+  }
+
   const { data, error } = await supabase.rpc('execute_trade', {
     p_market_id: marketId,
     p_side: side,
@@ -38,7 +58,10 @@ export async function executeTradeAction(
       return { error: "You don't have enough crowns for this trade." }
     }
     if (msg.includes('not open') || msg.includes('market is not open')) {
-      return { error: 'This market is closed.' }
+      return { error: 'This market is not open for trading.' }
+    }
+    if (msg.includes('share count cannot exceed')) {
+      return { error: `Share count cannot exceed ${MAX_SHARES.toLocaleString()} per trade.` }
     }
     return { error: error.message }
   }

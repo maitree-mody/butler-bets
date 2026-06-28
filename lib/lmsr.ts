@@ -31,6 +31,8 @@ export function cost(qYes: number, qNo: number, b: number): number {
  * Always returns a value in (0, 1). P(NO) = 1 - priceYes(...).
  */
 export function priceYes(qYes: number, qNo: number, b: number): number {
+  // Guard: invalid b yields the neutral 50/50 price rather than NaN.
+  if (b <= 0 || !isFinite(b)) return 0.5;
   const a = qYes / b;
   const c = qNo / b;
   const m = Math.max(a, c);
