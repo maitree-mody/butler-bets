@@ -3,6 +3,7 @@ import { Crown, ChevronDown, LogOut, User } from 'lucide-react'
 import { signOut } from '@/app/actions/auth'
 import { displayNameFromEmail } from '@/lib/display-name'
 import NavLinks from './NavLinks'
+import NotificationBell from './NotificationBell'
 
 export default function Nav({ email }: { email: string }) {
   const displayName = displayNameFromEmail(email)
@@ -34,6 +35,8 @@ export default function Nav({ email }: { email: string }) {
           >
             + New market
           </Link>
+
+          <NotificationBell />
 
           {/* User menu — native details/summary, no JS needed */}
           <details className="group relative">

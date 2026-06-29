@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Libre_Caslon_Text } from "next/font/google";
 import "./globals.css";
+import NotificationsProvider from "@/app/components/NotificationsProvider";
 
 const libreCaslon = Libre_Caslon_Text({
   variable: "--font-display",
@@ -30,7 +31,9 @@ export default function RootLayout({
       className={`${libreCaslon.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
-        {children}
+        <NotificationsProvider>
+          {children}
+        </NotificationsProvider>
       </body>
     </html>
   );
