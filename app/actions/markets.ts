@@ -16,8 +16,6 @@ export async function createMarket(
   const question = (formData.get('question') as string ?? '').trim()
   const description = (formData.get('description') as string ?? '').trim() || null
   const closesAtRaw = (formData.get('closes_at') as string ?? '').trim()
-  const bRaw = formData.get('b') as string
-
   if (!question) return 'Question is required.'
   if (question.length > 200) return 'Question must be 200 characters or fewer.'
 
@@ -27,18 +25,13 @@ export async function createMarket(
     return 'Closing date must be in the future.'
   }
 
-  const b = bRaw ? Number(bRaw) : 100
-  if (isNaN(b) || b < 10 || b > 500) {
-    return 'Liquidity must be a number between 10 and 500.'
-  }
-
   const { data, error } = await supabase
     .from('markets')
     .insert({
       question,
       description,
       closes_at: closesAt.toISOString(),
-      b,
+      b: 100,
       q_yes: 0,
       q_no: 0,
       status: 'open',

@@ -43,16 +43,9 @@ export function CreateMarketForm() {
         />
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label htmlFor="closes_at" className="mb-1.5 block text-sm font-semibold text-foreground">Closing date</label>
-          <input id="closes_at" name="closes_at" type="datetime-local" required className={`${inputStyles} font-numeric`} />
-        </div>
-        <div>
-          <label htmlFor="b" className="mb-1.5 block text-sm font-semibold text-foreground">Liquidity</label>
-          <input id="b" name="b" type="number" defaultValue={100} min={10} max={500} className={`${inputStyles} font-numeric`} />
-          <p className="mt-1.5 text-xs text-muted-foreground">Higher values reduce price movement.</p>
-        </div>
+      <div>
+        <label htmlFor="closes_at" className="mb-1.5 block text-sm font-semibold text-foreground">Closing date</label>
+        <input id="closes_at" name="closes_at" type="datetime-local" required className={`${inputStyles} font-numeric`} />
       </div>
 
       <div className="flex items-center justify-between border-t border-border pt-5">
