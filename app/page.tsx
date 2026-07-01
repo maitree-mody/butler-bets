@@ -9,7 +9,7 @@ import { priceYes } from '@/lib/lmsr'
 import { isoTimestampHoursAgo } from '@/lib/time'
 import { displayNameFromEmail } from '@/lib/display-name'
 import { rankUsers } from '@/lib/ranking'
-import { HERO_LINE_1, HERO_LINE_2, HERO_EMPHASIS } from '@/lib/copy'
+import { HERO_LINE_1, HERO_LINE_2 } from '@/lib/copy'
 import Nav from '@/app/components/Nav'
 import MarketCard, { Sparkline } from '@/app/components/MarketCard'
 
@@ -162,8 +162,7 @@ export default async function HomePage({
 
             <h1 className="relative font-display text-4xl leading-[1.05] tracking-tight text-columbia-deep sm:text-5xl md:text-6xl lg:text-7xl">
               {HERO_LINE_1}<br />
-              {HERO_LINE_2}<br />
-              <em className="italic" style={{ fontFamily: 'var(--font-display)' }}>{HERO_EMPHASIS}</em>
+              {HERO_LINE_2}
             </h1>
             <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
               Campus-powered prediction markets for Columbia students. Built on research, driven by insight.
