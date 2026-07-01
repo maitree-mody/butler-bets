@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import {
-  Crown, Trophy, Users,
+  Crown, Home as HomeIcon, BarChart3, Bell, Trophy, User, Users,
   Search, TrendingUp, BookOpen, ArrowRight,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
@@ -325,14 +325,39 @@ function DashboardMock({
     { l: 'Rank',            v: rankLabel },
   ]
 
+  // Every link here routes to a real page or in-page anchor — no dead icons.
+  const sidebarLinks = [
+    { Icon: HomeIcon,  label: 'Home',          href: '/' },
+    { Icon: BarChart3, label: 'Markets',       href: '#markets' },
+    { Icon: Bell,      label: 'Notifications', href: '/notifications' },
+    { Icon: Trophy,    label: 'Leaderboard',   href: '/leaderboard' },
+  ]
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-2xl shadow-columbia/10">
-      <div className="flex items-center justify-between">
-        <h3 className="font-display text-lg font-semibold text-columbia-deep">Market Overview</h3>
-        <Link href="/leaderboard" className="text-xs font-semibold text-columbia hover:text-columbia-deep">
-          View dashboard →
+    <div className="flex overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-columbia/10">
+      {/* Blue sidebar */}
+      <aside className="flex w-14 flex-col items-center gap-5 bg-columbia py-5 text-primary-foreground/80">
+        {sidebarLinks.map(({ Icon, label, href }, i) => (
+          <Link
+            key={label}
+            href={href}
+            aria-label={label}
+            className={`grid h-9 w-9 place-items-center rounded-md ${
+              i === 0 ? 'bg-white/15 text-white' : 'hover:bg-white/10'
+            }`}
+          >
+            <Icon className="h-4 w-4" strokeWidth={1.8} />
+          </Link>
+        ))}
+        <div className="flex-1" />
+        <Link href="/profile" aria-label="Profile" className="hover:opacity-100 opacity-70">
+          <User className="h-4 w-4" strokeWidth={1.8} />
         </Link>
-      </div>
+      </aside>
+
+      {/* Main white area */}
+      <div className="min-w-0 flex-1 p-5">
+      <h3 className="font-display text-lg font-semibold text-columbia-deep">Market Overview</h3>
 
       {/* Stats */}
       <div className="mt-4 grid grid-cols-4 gap-2">
@@ -376,6 +401,7 @@ function DashboardMock({
             </Link>
           </div>
         )}
+      </div>
       </div>
     </div>
   )
