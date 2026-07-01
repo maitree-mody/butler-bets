@@ -158,11 +158,11 @@ export default async function HomePage({
           aria-hidden="true"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-columbia-soft/60 to-transparent" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-6 pb-28 pt-16 lg:grid-cols-2">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pb-36 pt-24 lg:grid-cols-2">
 
           {/* Left: copy */}
           <div className="relative">
-            <h1 className="relative font-display text-4xl leading-[1.05] tracking-tight text-columbia-deep sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="relative font-display text-4xl leading-[1.05] tracking-tight text-columbia-deep sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
               {HERO_LINE_1}<br />
               <em className="italic text-columbia" style={{ fontFamily: 'var(--font-display)' }}>{HERO_LINE_2}</em>
             </h1>
@@ -215,7 +215,7 @@ export default async function HomePage({
       </section>
 
       {/* ── FEATURED MARKETS ─────────────────────────────── */}
-      <section id="markets" className="mx-auto max-w-7xl px-6 pb-16 pt-10">
+      <section id="markets" className="mx-auto max-w-7xl px-6 pb-16 pt-16">
         {/* Header */}
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="font-display text-3xl font-bold text-columbia-deep">Live Markets</h2>
@@ -357,7 +357,7 @@ function DashboardMock({
       </aside>
 
       {/* Main white area */}
-      <div className="min-w-0 flex-1 p-5">
+      <div className="min-w-0 flex-1 p-6">
       <h3 className="font-display text-lg font-semibold text-columbia-deep">Market Overview</h3>
 
       {/* Stats */}

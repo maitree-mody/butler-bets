@@ -81,7 +81,8 @@ export default async function LoginPage({
               <em className="italic text-columbia" style={{ fontFamily: 'var(--font-display)' }}>{HERO_LINE_2}</em>
             </h1>
             <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">
-              Play-money prediction markets on campus events. Sign in with your Columbia or Barnard account.
+              Play-money prediction markets on campus events.<br />
+              Sign in with your Columbia or Barnard account.
             </p>
 
             {errorMessage && (
