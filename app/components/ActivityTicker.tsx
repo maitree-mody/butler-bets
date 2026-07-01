@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { displayNameFromEmail } from '@/lib/display-name'
 
@@ -30,6 +31,7 @@ function first<T>(value: T | T[] | null): T | null {
 const POLL_MS = 15_000
 
 export default function ActivityTicker() {
+  const pathname = usePathname()
   const supabase = useMemo(() => createClient(), [])
   const [trades, setTrades] = useState<TradeRow[] | null>(null)
 
@@ -47,6 +49,12 @@ export default function ActivityTicker() {
     const id = setInterval(fetchTrades, POLL_MS)
     return () => clearInterval(id)
   }, [fetchTrades])
+
+  // Hidden on the login/landing page — there's no session yet and the
+  // ticker competes with the login form for attention.
+  if (pathname === '/login') {
+    return null
+  }
 
   // Stable-height placeholder while the first fetch is in flight
   if (trades === null) {
