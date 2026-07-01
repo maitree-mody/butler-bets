@@ -1,8 +1,14 @@
 import { redirect } from 'next/navigation'
+import { Wallet, TrendingUp, ArrowLeftRight, Building2, Target, GraduationCap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import Nav from '@/app/components/Nav'
+import Card from '@/app/components/ui/Card'
+import Badge from '@/app/components/ui/Badge'
+import IconStat from '@/app/components/ui/IconStat'
 import { priceYes } from '@/lib/lmsr'
-import EditDisplayName from './EditDisplayName'
+import { inferCategory } from '@/lib/category'
+import { displayNameFromEmail } from '@/lib/display-name'
+import EditDisplayNameToggle from './EditDisplayNameToggle'
 
 const STARTING_CROWNS = 1000
 
@@ -61,6 +67,7 @@ export default async function ProfilePage() {
 
   const crowns = Number(profile?.crowns ?? 0)
   const profit = crowns - STARTING_CROWNS
+  const returnPct = (profit / STARTING_CROWNS) * 100
   const totalTrades = trades.length
   const distinctMarkets = new Set(trades.map(t => t.market_id)).size
   const openPositions = positions.filter(
@@ -71,6 +78,8 @@ export default async function ProfilePage() {
   const recentTrades = trades.slice(0, 15)
 
   const displayName = (profile as { display_name?: string | null } | null)?.display_name ?? null
+  const resolvedName = displayName ?? displayNameFromEmail(user.email)
+  const avatarInitial = resolvedName[0]?.toUpperCase() ?? '?'
   const memberSince = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-GB', {
         month: 'long',
@@ -79,16 +88,17 @@ export default async function ProfilePage() {
     : null
 
   const stats = [
-    { label: 'Balance', value: crowns.toFixed(2), sub: 'crowns', color: 'text-foreground' },
+    { icon: Wallet, label: 'Balance', value: crowns.toFixed(2), sub: 'crowns' },
     {
+      icon: TrendingUp,
       label: 'Total profit',
       value: `${profit >= 0 ? '+' : ''}${profit.toFixed(2)}`,
       sub: 'vs. 1,000 start',
-      color: profit >= 0 ? 'text-success' : 'text-danger',
+      tone: profit >= 0 ? 'success' as const : 'danger' as const,
     },
-    { label: 'Trades', value: String(totalTrades), sub: 'executed', color: 'text-foreground' },
-    { label: 'Markets', value: String(distinctMarkets), sub: 'participated in', color: 'text-foreground' },
-    { label: 'Open positions', value: String(openPositions.length), sub: 'active markets', color: 'text-foreground' },
+    { icon: ArrowLeftRight, label: 'Trades', value: String(totalTrades), sub: 'executed' },
+    { icon: Building2, label: 'Markets', value: String(distinctMarkets), sub: 'participated in' },
+    { icon: Target, label: 'Open positions', value: String(openPositions.length), sub: 'active markets' },
   ]
 
   return (
@@ -97,215 +107,272 @@ export default async function ProfilePage() {
       <main className="page-shell py-8 sm:py-10">
 
         {/* ── Account header card ─────────────────────────── */}
-        <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-7">
-          <p className="eyebrow mb-3">Your account</p>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-columbia-deep sm:text-3xl">
-            {displayName ?? user.email}
-          </h1>
-          {displayName && (
-            <p className="mt-1 break-all text-sm text-muted-foreground">{user.email}</p>
-          )}
-          {memberSince && (
-            <p className="mt-1 text-sm text-muted-foreground">Member since {memberSince}</p>
-          )}
-
-          <div className="mt-5 border-t border-border pt-5">
-            <p className="eyebrow mb-3">Display name</p>
-            <EditDisplayName current={displayName} />
+        <Card padding="lg" className="mb-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-columbia-soft">
+                <span className="font-display text-xl font-bold text-columbia">{avatarInitial}</span>
+              </div>
+              <div>
+                <p className="eyebrow mb-1">Your account</p>
+                <h1 className="font-display text-2xl font-bold tracking-tight text-columbia-deep sm:text-3xl">
+                  {displayName ?? user.email}
+                </h1>
+                {displayName && (
+                  <p className="mt-1 break-all text-sm text-muted-foreground">{user.email}</p>
+                )}
+                {memberSince && (
+                  <p className="mt-1 text-sm text-muted-foreground">Member since {memberSince}</p>
+                )}
+              </div>
+            </div>
+            <EditDisplayNameToggle current={displayName} />
           </div>
-        </div>
+        </Card>
 
         {/* ── Stat cards ──────────────────────────────────── */}
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {stats.map(({ label, value, sub, color }) => (
-            <div
-              key={label}
-              className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5"
-            >
-              <p className="eyebrow mb-2">{label}</p>
-              <p className={`font-numeric text-2xl font-bold leading-none tracking-tight sm:text-3xl ${color}`}>
-                {value}
-              </p>
-              <p className="mt-1.5 text-xs text-muted-foreground">{sub}</p>
-            </div>
+          {stats.map(({ icon, label, value, sub, tone }) => (
+            <IconStat key={label} icon={icon} label={label} value={value} sub={sub} tone={tone} />
           ))}
         </div>
 
-        {/* ── Open positions ──────────────────────────────── */}
-        <section className="mb-6" aria-labelledby="positions-heading">
-          <div className="mb-3 flex items-baseline gap-3">
-            <h2
-              id="positions-heading"
-              className="font-display text-xl font-bold tracking-tight text-columbia-deep"
-            >
-              Your positions
-            </h2>
-            <span className="font-numeric text-sm text-muted-foreground">
-              {openPositions.length} open
-            </span>
-          </div>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          {/* ── Left: positions + activity ─────────────────── */}
+          <div className="flex flex-col gap-6">
 
-          {openPositions.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-              <p className="text-sm text-muted-foreground">No open positions yet.</p>
-            </div>
-          ) : (
-            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-              <div className="overflow-x-auto">
-                <table
-                  className="font-numeric w-full min-w-[36rem]"
-                  aria-label="Open positions"
+            {/* Open positions */}
+            <section aria-labelledby="positions-heading">
+              <div className="mb-3 flex items-baseline gap-3">
+                <h2
+                  id="positions-heading"
+                  className="font-display text-xl font-bold tracking-tight text-columbia-deep"
                 >
-                  <thead>
-                    <tr className="border-b border-border bg-muted/60">
-                      <th className="py-3 pl-5 pr-4 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                        Market
-                      </th>
-                      <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                        YES shares
-                      </th>
-                      <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                        NO shares
-                      </th>
-                      <th className="py-3 pr-5 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                        Est. value
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {openPositions.map(pos => {
-                      const m = pos.markets!
-                      const rawP = priceYes(Number(m.q_yes), Number(m.q_no), Number(m.b))
-                      const p = isFinite(rawP) ? rawP : 0.5
-                      const value =
-                        Number(pos.yes_shares) * p +
-                        Number(pos.no_shares) * (1 - p)
-                      return (
-                        <tr
-                          key={m.id}
-                          className="border-b border-border last:border-0 transition-colors hover:bg-muted/30"
-                        >
-                          <td className="max-w-xs py-3.5 pl-5 pr-4 text-sm font-medium text-foreground">
-                            {m.question}
-                          </td>
-                          <td className="py-3.5 pr-4 text-right text-sm font-semibold text-columbia">
-                            {Number(pos.yes_shares).toFixed(0)}
-                          </td>
-                          <td className="py-3.5 pr-4 text-right text-sm text-muted-foreground">
-                            {Number(pos.no_shares).toFixed(0)}
-                          </td>
-                          <td className="py-3.5 pr-5 text-right text-sm font-semibold text-foreground">
-                            {value.toFixed(2)} ♛
-                          </td>
+                  Your positions
+                </h2>
+                <span className="font-numeric text-sm text-muted-foreground">
+                  {openPositions.length} open
+                </span>
+              </div>
+
+              {openPositions.length === 0 ? (
+                <Card padding="lg" className="text-center">
+                  <p className="text-sm text-muted-foreground">No open positions yet.</p>
+                </Card>
+              ) : (
+                <Card padding="none" className="overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table
+                      className="font-numeric w-full min-w-[36rem]"
+                      aria-label="Open positions"
+                    >
+                      <thead>
+                        <tr className="border-b border-border bg-muted/60">
+                          <th className="py-3 pl-5 pr-4 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            Market
+                          </th>
+                          <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            YES shares
+                          </th>
+                          <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            NO shares
+                          </th>
+                          <th className="py-3 pr-5 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            Est. value
+                          </th>
                         </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </section>
+                      </thead>
+                      <tbody>
+                        {openPositions.map(pos => {
+                          const m = pos.markets!
+                          const rawP = priceYes(Number(m.q_yes), Number(m.q_no), Number(m.b))
+                          const p = isFinite(rawP) ? rawP : 0.5
+                          const value =
+                            Number(pos.yes_shares) * p +
+                            Number(pos.no_shares) * (1 - p)
+                          const cat = inferCategory(m.question)
+                          return (
+                            <tr
+                              key={m.id}
+                              className="border-b border-border last:border-0 transition-colors hover:bg-muted/30"
+                            >
+                              <td className="max-w-xs py-3.5 pl-5 pr-4 text-sm font-medium text-foreground">
+                                <span className="flex items-center gap-2">
+                                  <cat.Icon className="h-3.5 w-3.5 shrink-0" style={{ color: cat.sparkColor }} strokeWidth={1.8} />
+                                  <span className="truncate">{m.question}</span>
+                                </span>
+                              </td>
+                              <td className="py-3.5 pr-4 text-right text-sm font-semibold text-columbia">
+                                {Number(pos.yes_shares).toFixed(0)}
+                              </td>
+                              <td className="py-3.5 pr-4 text-right text-sm text-muted-foreground">
+                                {Number(pos.no_shares).toFixed(0)}
+                              </td>
+                              <td className="py-3.5 pr-5 text-right text-sm font-semibold text-foreground">
+                                {value.toFixed(2)} ♛
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              )}
+            </section>
 
-        {/* ── Recent activity ─────────────────────────────── */}
-        <section aria-labelledby="activity-heading">
-          <div className="mb-3 flex items-baseline gap-3">
-            <h2
-              id="activity-heading"
-              className="font-display text-xl font-bold tracking-tight text-columbia-deep"
-            >
-              Recent activity
-            </h2>
-            {recentTrades.length > 0 && (
-              <span className="font-numeric text-sm text-muted-foreground">
-                last {recentTrades.length}
-              </span>
-            )}
+            {/* Recent activity */}
+            <section aria-labelledby="activity-heading">
+              <div className="mb-3 flex items-baseline gap-3">
+                <h2
+                  id="activity-heading"
+                  className="font-display text-xl font-bold tracking-tight text-columbia-deep"
+                >
+                  Recent activity
+                </h2>
+                {recentTrades.length > 0 && (
+                  <span className="font-numeric text-sm text-muted-foreground">
+                    last {recentTrades.length}
+                  </span>
+                )}
+              </div>
+
+              {recentTrades.length === 0 ? (
+                <Card padding="lg" className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    No trades yet — head to a market to get started.
+                  </p>
+                </Card>
+              ) : (
+                <Card padding="none" className="overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table
+                      className="font-numeric w-full min-w-[42rem]"
+                      aria-label="Recent trades"
+                    >
+                      <thead>
+                        <tr className="border-b border-border bg-muted/60">
+                          <th className="py-3 pl-5 pr-4 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            Market
+                          </th>
+                          <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            Type
+                          </th>
+                          <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            Side
+                          </th>
+                          <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            Shares
+                          </th>
+                          <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            Price
+                          </th>
+                          <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            Total
+                          </th>
+                          <th className="py-3 pr-5 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            Time
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recentTrades.map(trade => {
+                          const shares = Number(trade.shares)
+                          const cost = Number(trade.cost)
+                          const pricePerShare = shares > 0 ? Math.abs(cost) / shares : 0
+                          const cat = inferCategory(trade.markets?.question ?? '')
+                          return (
+                            <tr
+                              key={trade.id}
+                              className="border-b border-border last:border-0 transition-colors hover:bg-muted/30"
+                            >
+                              <td className="max-w-[12rem] py-3.5 pl-5 pr-4 text-sm font-medium text-foreground">
+                                <span className="flex items-center gap-2">
+                                  <cat.Icon className="h-3.5 w-3.5 shrink-0" style={{ color: cat.sparkColor }} strokeWidth={1.8} />
+                                  <span className="truncate">{trade.markets?.question ?? '—'}</span>
+                                </span>
+                              </td>
+                              <td className="py-3.5 pr-4 text-right">
+                                <Badge tone={trade.type === 'sell' ? 'muted' : 'success'}>
+                                  {trade.type}
+                                </Badge>
+                              </td>
+                              <td className="py-3.5 pr-4 text-right">
+                                <Badge tone={trade.side === 'yes' ? 'columbia' : 'danger'}>
+                                  {trade.side}
+                                </Badge>
+                              </td>
+                              <td className="py-3.5 pr-4 text-right text-sm text-foreground">
+                                {shares.toFixed(0)}
+                              </td>
+                              <td className="py-3.5 pr-4 text-right text-sm text-muted-foreground">
+                                {pricePerShare.toFixed(2)}
+                              </td>
+                              <td className="py-3.5 pr-4 text-right text-sm text-foreground">
+                                {cost.toFixed(2)}
+                              </td>
+                              <td className="py-3.5 pr-5 text-right text-xs text-muted-foreground">
+                                {new Date(trade.created_at).toLocaleString('en-GB', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                })}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              )}
+            </section>
           </div>
 
-          {recentTrades.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-              <p className="text-sm text-muted-foreground">
-                No trades yet — head to a market to get started.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-              <div className="overflow-x-auto">
-                <table
-                  className="font-numeric w-full min-w-[36rem]"
-                  aria-label="Recent trades"
-                >
-                  <thead>
-                    <tr className="border-b border-border bg-muted/60">
-                      <th className="py-3 pl-5 pr-4 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                        Market
-                      </th>
-                      <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                        Type
-                      </th>
-                      <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                        Side
-                      </th>
-                      <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                        Shares
-                      </th>
-                      <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                        Cost
-                      </th>
-                      <th className="py-3 pr-5 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                        Date
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentTrades.map(trade => (
-                      <tr
-                        key={trade.id}
-                        className="border-b border-border last:border-0 transition-colors hover:bg-muted/30"
-                      >
-                        <td className="max-w-[14rem] truncate py-3.5 pl-5 pr-4 text-sm font-medium text-foreground">
-                          {trade.markets?.question ?? '—'}
-                        </td>
-                        <td className="py-3.5 pr-4 text-right">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                            trade.type === 'sell'
-                              ? 'bg-muted text-muted-foreground'
-                              : 'bg-success/10 text-success'
-                          }`}>
-                            {trade.type}
-                          </span>
-                        </td>
-                        <td className="py-3.5 pr-4 text-right">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                            trade.side === 'yes'
-                              ? 'bg-columbia-soft text-columbia'
-                              : 'bg-danger/5 text-danger'
-                          }`}>
-                            {trade.side}
-                          </span>
-                        </td>
-                        <td className="py-3.5 pr-4 text-right text-sm text-foreground">
-                          {Number(trade.shares).toFixed(0)}
-                        </td>
-                        <td className="py-3.5 pr-4 text-right text-sm text-foreground">
-                          {Number(trade.cost).toFixed(2)}
-                        </td>
-                        <td className="py-3.5 pr-5 text-right text-xs text-muted-foreground">
-                          {new Date(trade.created_at).toLocaleDateString('en-GB', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {/* ── Right: portfolio summary + community ────────── */}
+          <div className="flex flex-col gap-6">
+            <Card padding="lg">
+              <p className="eyebrow mb-4">Portfolio summary</p>
+              <dl className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <dt className="text-sm text-muted-foreground">Net profit</dt>
+                  <dd className={`text-sm font-bold ${profit >= 0 ? 'text-success' : 'text-danger'}`}>
+                    {profit >= 0 ? '+' : ''}{profit.toFixed(2)} ♛
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-sm text-muted-foreground">Return</dt>
+                  <dd className={`text-sm font-bold ${returnPct >= 0 ? 'text-success' : 'text-danger'}`}>
+                    {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(2)}%
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between border-t border-border pt-3">
+                  <dt className="text-sm text-muted-foreground">Starting balance</dt>
+                  <dd className="text-sm font-semibold text-foreground">{STARTING_CROWNS.toLocaleString()} ♛</dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-sm text-muted-foreground">Current balance</dt>
+                  <dd className="text-sm font-semibold text-foreground">{crowns.toFixed(2)} ♛</dd>
+                </div>
+              </dl>
+            </Card>
+
+            <Card padding="lg">
+              <div className="flex items-start gap-3">
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-columbia-soft">
+                  <GraduationCap className="h-4 w-4 text-columbia" strokeWidth={1.8} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-columbia-deep">Columbia/Barnard community</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                    Butler Bets is a prediction market for Columbia &amp; Barnard students.
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
-        </section>
+            </Card>
+          </div>
+        </div>
       </main>
     </>
   )
