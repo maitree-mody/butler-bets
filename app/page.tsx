@@ -1,13 +1,14 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import {
-  Crown, Home as HomeIcon, BarChart3, Megaphone, Trophy, Settings, Users,
+  Crown, Trophy, Users,
   Search, TrendingUp, BookOpen, ArrowRight,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { priceYes } from '@/lib/lmsr'
 import { isoTimestampHoursAgo } from '@/lib/time'
 import { displayNameFromEmail } from '@/lib/display-name'
+import { rankUsers } from '@/lib/ranking'
 import { HERO_LINE_1, HERO_LINE_2, HERO_EMPHASIS } from '@/lib/copy'
 import Nav from '@/app/components/Nav'
 import MarketCard, { Sparkline } from '@/app/components/MarketCard'
@@ -92,6 +93,22 @@ export default async function HomePage({
   const crowns = Number(userProfile?.crowns ?? 0)
   const marketsTraded = positionsResult.data?.length ?? 0
   const totalStudents = usersCountResult.count ?? 0
+
+  // Rank — mirrors /leaderboard's exact two-step query (trade counts, then
+  // only the users who've ever traded) via the shared rankUsers() helper.
+  const { data: tradeRows } = await supabase.from('trades').select('user_id')
+  const tradeCounts = new Map<string, number>()
+  for (const row of tradeRows ?? []) {
+    tradeCounts.set(row.user_id, (tradeCounts.get(row.user_id) ?? 0) + 1)
+  }
+  const traderIds = [...tradeCounts.keys()]
+  const { data: rankableUsers } =
+    traderIds.length === 0
+      ? { data: [] as { id: string; email: string | null; crowns: number; display_name: string | null }[] }
+      : await supabase.from('users').select('id, email, crowns, display_name').in('id', traderIds)
+  const rankedUsers = rankUsers(rankableUsers ?? [], tradeCounts)
+  const myRank = rankedUsers.findIndex((entry) => entry.id === user.id) + 1
+  const rankLabel = myRank > 0 ? `#${myRank} / ${rankedUsers.length}` : 'Unranked'
 
   const featuredMarket = openMarkets[0] ?? null
   const featuredYesPct = featuredMarket
@@ -189,7 +206,7 @@ export default async function HomePage({
           <DashboardMock
             crowns={crowns}
             marketsTraded={marketsTraded}
-            openMarketsCount={openMarkets.length}
+            rankLabel={rankLabel}
             featuredMarket={featuredMarket}
             featuredYesPct={featuredYesPct}
           />
@@ -288,13 +305,13 @@ export default async function HomePage({
 function DashboardMock({
   crowns,
   marketsTraded,
-  openMarketsCount,
+  rankLabel,
   featuredMarket,
   featuredYesPct,
 }: {
   crowns: number
   marketsTraded: number
-  openMarketsCount: number
+  rankLabel: string
   featuredMarket: { id: string; question: string } | null
   featuredYesPct: number
 }) {
@@ -302,89 +319,63 @@ function DashboardMock({
   const buyingPower = Math.floor(crowns * 0.28)
 
   const stats = [
-    { l: 'Portfolio Value', v: `♛${crowns.toLocaleString()}`, sub: '▲ 4.32%' },
+    { l: 'Portfolio Value', v: `♛${crowns.toLocaleString()}` },
     { l: 'Buying Power',    v: `♛${buyingPower.toLocaleString()}` },
     { l: 'Markets Traded',  v: String(marketsTraded) },
-    { l: 'Rank',            v: 'Top 12%' },
-  ]
-
-  const sidebarLinks = [
-    { Icon: HomeIcon,  label: 'Home',         href: '/' },
-    { Icon: BarChart3, label: 'Charts',        href: '#markets' },
-    { Icon: Megaphone, label: 'Announcements', href: '/notifications' },
-    { Icon: Trophy,    label: 'Leaderboard',   href: '/leaderboard' },
+    { l: 'Rank',            v: rankLabel },
   ]
 
   return (
-    <div className="flex overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-columbia/10">
-      {/* Blue sidebar */}
-      <aside className="flex w-14 flex-col items-center gap-5 bg-columbia py-5 text-primary-foreground/80">
-        {sidebarLinks.map(({ Icon, label, href }, i) => (
-          <Link
-            key={label}
-            href={href}
-            aria-label={label}
-            className={`grid h-9 w-9 place-items-center rounded-md ${
-              i === 1 ? 'bg-white/15 text-white' : 'hover:bg-white/10'
-            }`}
-          >
-            <Icon className="h-4 w-4" strokeWidth={1.8} />
-          </Link>
-        ))}
-        <div className="flex-1" />
-        <Link href="/profile" aria-label="Profile" className="hover:opacity-100 opacity-70">
-          <Settings className="h-4 w-4" strokeWidth={1.8} />
-        </Link>
-      </aside>
-
-      {/* Main white area */}
-      <div className="min-w-0 flex-1 p-5">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-2xl shadow-columbia/10">
+      <div className="flex items-center justify-between">
         <h3 className="font-display text-lg font-semibold text-columbia-deep">Market Overview</h3>
+        <Link href="/leaderboard" className="text-xs font-semibold text-columbia hover:text-columbia-deep">
+          View dashboard →
+        </Link>
+      </div>
 
-        {/* Stats */}
-        <div className="mt-4 grid grid-cols-4 gap-2">
-          {stats.map((s) => (
-            <div key={s.l} className="rounded-lg bg-columbia-soft/60 p-2.5">
-              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{s.l}</div>
-              <div className="mt-1 text-sm font-semibold text-columbia-deep">{s.v}</div>
-              {s.sub && <div className="text-[10px] text-success">{s.sub}</div>}
-            </div>
-          ))}
-        </div>
+      {/* Stats */}
+      <div className="mt-4 grid grid-cols-4 gap-2">
+        {stats.map((s) => (
+          <div key={s.l} className="rounded-lg bg-columbia-soft/60 p-2.5">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{s.l}</div>
+            <div className="mt-1 text-sm font-semibold text-columbia-deep">{s.v}</div>
+          </div>
+        ))}
+      </div>
 
-        {/* Featured market */}
-        <div className="mt-5 rounded-lg border border-border p-4">
-          {featuredMarket ? (
-            <>
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground line-clamp-2">
-                    {featuredMarket.question}
-                  </p>
-                  <div className="mt-3 font-display text-4xl font-bold text-columbia">
-                    {featuredYesPct}%
-                  </div>
-                  <div className="text-xs text-muted-foreground">Yes</div>
+      {/* Featured market */}
+      <div className="mt-5 rounded-lg border border-border p-4">
+        {featuredMarket ? (
+          <>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground line-clamp-2">
+                  {featuredMarket.question}
+                </p>
+                <div className="mt-3 font-display text-4xl font-bold text-columbia">
+                  {featuredYesPct}%
                 </div>
-                <div className="flex shrink-0 flex-col gap-2">
-                  <PillBox label="Yes" value={`${featuredYesPct}¢`} tone="yes" />
-                  <PillBox label="No"  value={`${noPct}¢`}          tone="no"  />
-                </div>
+                <div className="text-xs text-muted-foreground">Yes</div>
               </div>
-              <Sparkline color="var(--columbia)" trend="up" />
-              <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
-                <span>Apr 18</span><span>May 2</span><span>May 16</span><span>May 30</span><span>Jun 13</span>
+              <div className="flex shrink-0 flex-col gap-2">
+                <PillBox label="Yes" value={`${featuredYesPct}¢`} tone="yes" />
+                <PillBox label="No"  value={`${noPct}¢`}          tone="no"  />
               </div>
-            </>
-          ) : (
-            <div className="py-4 text-center">
-              <p className="text-sm text-muted-foreground">No open markets yet.</p>
-              <Link href="/markets/new" className="mt-2 inline-block text-sm font-semibold text-columbia hover:underline">
-                Create the first →
-              </Link>
             </div>
-          )}
-        </div>
+            <Sparkline color="var(--columbia)" trend="up" />
+            <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+              <span>Apr 18</span><span>May 2</span><span>May 16</span><span>May 30</span><span>Jun 13</span>
+            </div>
+          </>
+        ) : (
+          <div className="py-4 text-center">
+            <p className="text-sm text-muted-foreground">No open markets yet.</p>
+            <Link href="/markets/new" className="mt-2 inline-block text-sm font-semibold text-columbia hover:underline">
+              Create the first →
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   )
