@@ -147,7 +147,7 @@ export default async function HomePage({
       {/* ── HERO ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-columbia-soft/60 to-transparent" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-6 pb-20 pt-8 lg:grid-cols-2">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-6 pb-8 pt-6 lg:grid-cols-2">
 
           {/* Left: copy */}
           <div className="relative">
@@ -165,10 +165,10 @@ export default async function HomePage({
               {HERO_LINE_2}<br />
               <em className="italic" style={{ fontFamily: 'var(--font-display)' }}>{HERO_EMPHASIS}</em>
             </h1>
-            <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
+            <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
               Campus-powered prediction markets for Columbia students. Built on research, driven by insight.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap gap-3">
               <a
                 href="#markets"
                 className="pressable inline-flex items-center gap-2 rounded-md bg-columbia px-5 py-3 text-sm font-medium text-primary-foreground shadow-sm hover:bg-columbia-deep"
@@ -183,7 +183,7 @@ export default async function HomePage({
               </Link>
             </div>
             {totalStudents > 0 && (
-              <div className="mt-8 flex items-center gap-3">
+              <div className="mt-5 flex items-center gap-3">
                 <div className="flex -space-x-2">
                   {[0, 1, 2].map((i) => (
                     <div
@@ -214,7 +214,7 @@ export default async function HomePage({
       </section>
 
       {/* ── FEATURED MARKETS ─────────────────────────────── */}
-      <section id="markets" className="mx-auto max-w-7xl px-6 py-16">
+      <section id="markets" className="mx-auto max-w-7xl px-6 pb-16 pt-4">
         {/* Header */}
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="font-display text-3xl font-bold text-columbia-deep">Live Markets</h2>
@@ -360,7 +360,7 @@ function DashboardMock({
       <h3 className="font-display text-lg font-semibold text-columbia-deep">Market Overview</h3>
 
       {/* Stats */}
-      <div className="mt-4 grid grid-cols-4 gap-2">
+      <div className="mt-3 grid grid-cols-4 gap-2">
         {stats.map((s) => (
           <div key={s.l} className="rounded-lg bg-columbia-soft/60 p-2.5">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{s.l}</div>
@@ -370,7 +370,7 @@ function DashboardMock({
       </div>
 
       {/* Featured market */}
-      <div className="mt-5 rounded-lg border border-border p-4">
+      <div className="mt-3 rounded-lg border border-border p-3">
         {featuredMarket ? (
           <>
             <div className="flex items-start justify-between gap-4">
@@ -378,7 +378,7 @@ function DashboardMock({
                 <p className="text-sm font-medium text-foreground line-clamp-2">
                   {featuredMarket.question}
                 </p>
-                <div className="mt-3 font-display text-4xl font-bold text-columbia">
+                <div className="mt-2 font-display text-3xl font-bold text-columbia">
                   {featuredYesPct}%
                 </div>
                 <div className="text-xs text-muted-foreground">Yes</div>
@@ -389,7 +389,7 @@ function DashboardMock({
               </div>
             </div>
             <Sparkline color="var(--columbia)" trend="up" />
-            <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+            <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground">
               <span>Apr 18</span><span>May 2</span><span>May 16</span><span>May 30</span><span>Jun 13</span>
             </div>
           </>
