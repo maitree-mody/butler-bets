@@ -17,6 +17,12 @@ export async function GET(request: NextRequest) {
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
   if (exchangeError) {
+    const msg = exchangeError.message ?? ''
+    if (msg.includes('signup_domain_not_allowed')) {
+      return NextResponse.redirect(
+        new URL('/login?error=Only+Columbia+and+Barnard+emails+are+allowed', origin)
+      )
+    }
     return NextResponse.redirect(new URL('/login?error=Could+not+sign+in', origin))
   }
 
