@@ -1,11 +1,22 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import {
   CartesianGrid, Line, LineChart, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 
 export type PricePoint = { time: string; price: number }
+
+type RangeKey = '1H' | '1D' | '1W' | '1M' | 'ALL'
+
+const RANGES: Array<{ key: RangeKey; label: string; ms: number | null }> = [
+  { key: '1H', label: '1H', ms: 60 * 60 * 1000 },
+  { key: '1D', label: '1D', ms: 24 * 60 * 60 * 1000 },
+  { key: '1W', label: '1W', ms: 7 * 24 * 60 * 60 * 1000 },
+  { key: '1M', label: '1M', ms: 30 * 24 * 60 * 60 * 1000 },
+  { key: 'ALL', label: 'ALL', ms: null },
+]
 
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -16,15 +27,54 @@ function fmtPct(value: number) {
 }
 
 export default function PriceChart({ points }: { points: PricePoint[] }) {
+  const [range, setRange] = useState<RangeKey>('ALL')
+  // Computed in an effect (not during render) so filtering stays a pure
+  // function of state/props rather than calling Date.now() while rendering.
+  const [cutoff, setCutoff] = useState<number | null>(null)
+
+  useEffect(() => {
+    const config = RANGES.find((r) => r.key === range)
+    setCutoff(config?.ms ? Date.now() - config.ms : null)
+  }, [range])
+
+  const { displayPoints, sparse } = useMemo(() => {
+    if (cutoff === null) return { displayPoints: points, sparse: false }
+    const filtered = points.filter((p) => new Date(p.time).getTime() >= cutoff)
+    if (filtered.length < 2) return { displayPoints: points.slice(-2), sparse: true }
+    return { displayPoints: filtered, sparse: false }
+  }, [points, cutoff])
+
   return (
     <section aria-labelledby="price-history-title">
-      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
         <h2 id="price-history-title" className="text-sm font-semibold text-foreground">YES price history</h2>
-        <p className="text-xs font-medium text-muted-foreground">0 – 100¢</p>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 rounded-full border border-border bg-muted/40 p-0.5">
+            {RANGES.map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setRange(key)}
+                aria-pressed={range === key}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                  range === key
+                    ? 'bg-columbia text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-columbia'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs font-medium text-muted-foreground">0 – 100¢</p>
+        </div>
       </div>
+      {sparse && (
+        <p className="px-5 pt-3 text-xs text-muted-foreground">Not enough trades in this window — showing full history.</p>
+      )}
       <div className="h-56 w-full px-2 py-4 sm:h-64 sm:px-4">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={points} margin={{ top: 4, right: 14, bottom: 4, left: 2 }}>
+          <LineChart data={sparse ? points : displayPoints} margin={{ top: 4, right: 14, bottom: 4, left: 2 }}>
             <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="2 5" />
             <XAxis
               dataKey="time"

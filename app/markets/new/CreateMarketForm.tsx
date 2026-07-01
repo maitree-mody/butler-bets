@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { createMarket } from '@/app/actions/markets'
+import Alert from '@/app/components/ui/Alert'
 
 const inputStyles = 'min-h-11 w-full rounded-lg border border-border bg-white px-3 text-sm text-foreground placeholder:text-muted-foreground/60 transition-colors focus:border-columbia focus:outline-none focus:ring-2 focus:ring-columbia/15'
 
@@ -10,7 +11,7 @@ export function CreateMarketForm() {
 
   return (
     <form action={action} className="mt-6 space-y-5">
-      {error && <p className="rounded-lg border border-danger bg-danger-soft px-3 py-2.5 text-sm text-danger" role="alert">{error}</p>}
+      {error && <Alert tone="danger" role="alert">{error}</Alert>}
 
       <div>
         <div className="mb-1.5 flex items-baseline justify-between gap-4">

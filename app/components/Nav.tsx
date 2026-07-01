@@ -44,9 +44,6 @@ export default function Nav({ email }: { email: string }) {
               <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-columbia-soft text-[0.7rem] font-bold text-columbia">
                 {initial}
               </span>
-              <span className="hidden max-w-[7rem] truncate font-medium text-foreground lg:block">
-                {displayName}
-              </span>
               <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-150 group-open:rotate-180" />
             </summary>
 
