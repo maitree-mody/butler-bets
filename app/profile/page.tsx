@@ -115,12 +115,7 @@ export default async function ProfilePage() {
               </div>
               <div>
                 <p className="eyebrow mb-1">Your account</p>
-                <h1 className="font-display text-2xl font-bold tracking-tight text-columbia-deep sm:text-3xl">
-                  {displayName ?? user.email}
-                </h1>
-                {displayName && (
-                  <p className="mt-1 break-all text-sm text-muted-foreground">{user.email}</p>
-                )}
+                <p className="break-all text-sm font-medium text-foreground">{user.email}</p>
                 {memberSince && (
                   <p className="mt-1 text-sm text-muted-foreground">Member since {memberSince}</p>
                 )}

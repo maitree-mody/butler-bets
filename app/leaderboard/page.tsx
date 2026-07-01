@@ -59,7 +59,7 @@ export default async function LeaderboardPage() {
             <div>
               <p className="eyebrow mb-2">Season standings</p>
               <h1 className="font-display text-3xl font-bold tracking-tight text-columbia-deep sm:text-4xl">
-                Top of the Heights
+                Top of The Heights
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 Ranked by profit from a 1,000-crown starting balance.
