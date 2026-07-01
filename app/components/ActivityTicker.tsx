@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
+// Supabase returns joined relations as arrays (one-to-many shape from PostgREST)
 type TradeRow = {
   id: string
   side: 'yes' | 'no'
   shares: number
-  users: { display_name: string | null } | null
-  markets: { question: string } | null
+  users: { display_name: string | null }[] | null
+  markets: { question: string }[] | null
 }
 
 const POLL_MS = 15_000
@@ -23,7 +24,7 @@ export default function ActivityTicker() {
       .select('id, side, shares, users(display_name), markets(question)')
       .order('created_at', { ascending: false })
       .limit(30)
-    if (data) setTrades(data as TradeRow[])
+    if (data) setTrades(data as unknown as TradeRow[])
   }, [supabase])
 
   useEffect(() => {
@@ -68,10 +69,10 @@ export default function ActivityTicker() {
         style={{ animationDuration: `${duration}s` }}
       >
         {[...trades, ...trades].map((trade, i) => {
-          const name = trade.users?.display_name ?? 'Someone'
+          const name = trade.users?.[0]?.display_name ?? 'Someone'
           const shares = Math.round(trade.shares)
           const side = trade.side.toUpperCase()
-          const question = trade.markets?.question ?? 'a market'
+          const question = trade.markets?.[0]?.question ?? 'a market'
           const truncated = question.length > 52 ? question.slice(0, 52).trimEnd() + '…' : question
 
           return (
