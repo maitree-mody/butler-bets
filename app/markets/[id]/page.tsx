@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { priceYes } from '@/lib/lmsr'
 import { displayNameFromEmail } from '@/lib/display-name'
 import Nav from '@/app/components/Nav'
 import TradePanel from './TradePanel'
@@ -67,13 +68,14 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
 
   const isOpen     = market.status === 'open'
   const isResolved = market.status === 'resolved'
+  const yesProb = priceYes(Number(market.q_yes), Number(market.q_no), Number(market.b))
+  const yesPct = Math.round(yesProb * 100)
+  const noPct  = 100 - yesPct
+  const volume  = Number(market.q_yes) + Number(market.q_no)
   const lastTrade = tradePoints.at(-1)
   const lastTradeLabel = lastTrade
     ? new Date(lastTrade.time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
     : null
-  const isRecentlyActive = lastTrade
-    ? Date.now() - new Date(lastTrade.time).getTime() < 24 * 60 * 60 * 1000
-    : false
   const closeDate = new Date(market.closes_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
   return (
@@ -98,11 +100,6 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                 <span className={`h-1.5 w-1.5 rounded-full ${isOpen ? 'bg-success' : 'bg-muted-foreground'}`} />
                 {market.status}
               </span>
-              {isRecentlyActive && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2.5 py-0.5 text-[11px] font-semibold text-orange-500">
-                  🔥 active
-                </span>
-              )}
               <span className="text-xs text-muted-foreground">·</span>
               <span className="text-xs text-muted-foreground">Expires {closeDate}</span>
               {lastTradeLabel && (
@@ -127,6 +124,47 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
 
             {/* Left */}
             <div className="flex flex-col gap-6">
+
+              {/* Price cards */}
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Current Prices</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <a href={isResolved ? '#market-result' : '#trade-ticket'}>
+                    <div className="rounded-xl border border-columbia/20 bg-columbia-soft/60 px-4 py-4 transition-all hover:border-columbia hover:shadow-md">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Yes</p>
+                      <p className="font-display mt-1 text-4xl font-bold leading-none text-columbia">{yesPct}¢</p>
+                      <p className="mt-2 text-xs font-semibold text-success">
+                        {yesPct > 50 ? `▲ ${yesPct - 50}pts above even` : yesPct < 50 ? `▼ ${50 - yesPct}pts below even` : '— at 50/50'}
+                      </p>
+                    </div>
+                  </a>
+                  <a href={isResolved ? '#market-result' : '#trade-ticket'}>
+                    <div className="rounded-xl border border-danger/20 bg-danger/5 px-4 py-4 transition-all hover:border-danger hover:shadow-md">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">No</p>
+                      <p className="font-display mt-1 text-4xl font-bold leading-none text-danger">{noPct}¢</p>
+                      <p className="mt-2 text-xs font-semibold text-muted-foreground">
+                        {isResolved ? 'View result ↓' : 'Click to trade ↓'}
+                      </p>
+                    </div>
+                  </a>
+                </div>
+
+                {/* Progress bar */}
+                <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-danger/10">
+                  <div className="h-full rounded-full bg-columbia transition-all" style={{ width: `${yesPct}%` }} />
+                </div>
+                <div className="mt-2 flex justify-between text-xs font-semibold">
+                  <span className="text-columbia">YES {yesPct}%</span>
+                  <span className="text-danger">NO {noPct}%</span>
+                </div>
+
+                {/* Stats */}
+                <div className="mt-5 flex items-center gap-6 border-t border-border pt-4">
+                  <div><p className="text-xs text-muted-foreground">Total shares</p><p className="font-semibold text-foreground">{volume.toLocaleString()}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Liquidity (b)</p><p className="font-semibold text-foreground">{Number(market.b).toLocaleString()}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Trades</p><p className="font-semibold text-foreground">{tradePoints.length}</p></div>
+                </div>
+              </div>
 
               {/* Chart */}
               <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">

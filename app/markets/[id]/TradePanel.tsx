@@ -229,10 +229,10 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
         type="button"
         onClick={handleTrade}
         disabled={isPending || validShares === 0 || exceedsMax}
-        className={`pressable w-full rounded-xl py-4 text-base font-bold text-white shadow-lg transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+        className={`pressable w-full rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
           side === 'yes'
-            ? 'bg-gradient-to-b from-columbia to-columbia/90 shadow-columbia/30 hover:from-columbia-deep hover:to-columbia-deep'
-            : 'bg-gradient-to-b from-danger to-danger/90 shadow-danger/30 hover:from-red-700 hover:to-red-700'
+            ? 'bg-columbia shadow-columbia/25 hover:bg-columbia-deep'
+            : 'bg-danger shadow-danger/25 hover:bg-red-700'
         }`}
       >
         {isPending
@@ -244,6 +244,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
 
       {/* Feedback */}
       <div aria-live="polite">
+<<<<<<< HEAD
         {successInfo && (
           <div className="mt-3 rounded-xl border border-success/25 bg-success/8 px-4 py-3">
             <p className="flex items-center gap-1.5 text-sm font-semibold text-success">
@@ -253,6 +254,12 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
               {successInfo.shares} {successInfo.side.toUpperCase()} · {successInfo.mode === 'sell' ? 'received' : 'cost'} {successInfo.cost.toFixed(2)} ♛ · balance {successInfo.newCrowns.toFixed(2)} ♛
             </p>
           </div>
+=======
+        {result && (
+          <p className="mt-3 rounded-xl border border-success/30 bg-success/10 px-3 py-2.5 text-sm text-success">
+            {result}
+          </p>
+>>>>>>> parent of 4ae32d4 (revert market card to compact price/percentage format)
         )}
         {error && (
           <p className="mt-3 rounded-xl border border-danger/30 bg-danger/5 px-3 py-2.5 text-sm text-danger">
