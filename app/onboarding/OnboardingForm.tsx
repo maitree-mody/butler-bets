@@ -1,6 +1,7 @@
 'use client'
 import { useActionState } from 'react'
 import { setDisplayNameAction } from '@/app/actions/profile'
+import Alert from '@/app/components/ui/Alert'
 
 const inputCls = 'min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground/60 transition-colors focus:border-columbia focus:outline-none focus:ring-2 focus:ring-columbia/15'
 
@@ -9,11 +10,7 @@ export default function OnboardingForm() {
 
   return (
     <form action={action} className="mt-6 flex flex-col gap-4">
-      {error && (
-        <p className="rounded-lg border border-danger/30 bg-danger/5 px-3 py-2.5 text-sm text-danger" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <Alert tone="danger" role="alert">{error}</Alert>}
 
       <div>
         <label htmlFor="display_name" className="mb-1.5 block text-sm font-semibold text-foreground">

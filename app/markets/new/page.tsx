@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Nav from '@/app/components/Nav'
+import Card from '@/app/components/ui/Card'
 import { CreateMarketForm } from './CreateMarketForm'
 
 export default async function NewMarketPage() {
@@ -16,7 +17,7 @@ export default async function NewMarketPage() {
       <Nav email={user.email ?? ''} />
       <main className="page-shell py-10 sm:py-14">
         <div className="mx-auto max-w-xl">
-          <div className="rounded-2xl border border-border bg-card p-7 shadow-sm sm:p-8">
+          <Card padding="none" className="p-7 sm:p-8">
             <header className="mb-7">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">New market</p>
               <h1 className="font-display mt-2 text-2xl font-bold tracking-tight text-columbia-deep sm:text-3xl">
@@ -27,7 +28,7 @@ export default async function NewMarketPage() {
               </p>
             </header>
             <CreateMarketForm />
-          </div>
+          </Card>
         </div>
       </main>
     </>

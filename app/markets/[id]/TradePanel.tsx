@@ -185,6 +185,25 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
           />
           <span className="border-l border-border px-3 text-xs font-medium text-muted-foreground">shares</span>
         </div>
+        <div className="mt-2 flex gap-1.5">
+          {[1, 10, 25, 50].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setSharesInput(String(n))}
+              className="pressable flex-1 rounded-lg border border-border py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-columbia hover:text-columbia"
+            >
+              {n}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setSharesInput(String(mode === 'sell' ? holdingsForSide : MAX_SHARES))}
+            className="pressable flex-1 rounded-lg border border-border py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-columbia hover:text-columbia"
+          >
+            Max
+          </button>
+        </div>
         <p className="mt-2 rounded-lg bg-muted px-3 py-2 text-sm font-semibold text-foreground">
           You own <span className="font-display text-base font-extrabold">{holdingsForSide.toFixed(0)}</span> {side.toUpperCase()} shares
         </p>

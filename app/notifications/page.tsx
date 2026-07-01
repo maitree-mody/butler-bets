@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Bell } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import Nav from '@/app/components/Nav'
+import Card from '@/app/components/ui/Card'
 import { markAllNotificationsRead } from '@/app/actions/notifications'
 
 function timeAgo(iso: string): string {
@@ -66,7 +67,7 @@ export default async function NotificationsPage() {
             )}
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <Card padding="none" className="overflow-hidden">
             {rows.length === 0 ? (
               <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
                 <Bell className="h-8 w-8 text-muted-foreground/40" strokeWidth={1} />
@@ -107,7 +108,7 @@ export default async function NotificationsPage() {
                 ))}
               </ul>
             )}
-          </div>
+          </Card>
         </div>
       </main>
     </>
