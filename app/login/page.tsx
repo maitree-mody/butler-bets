@@ -113,7 +113,7 @@ export default async function LoginPage({
             <div className="mt-6 border-t border-border pt-5">
               <p className="mb-4 flex items-center gap-2 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
                 <span className="h-px flex-1 bg-border" />
-                Secure
+                The Deal
                 <span className="h-px flex-1 bg-border" />
               </p>
               <div className="grid grid-cols-3 gap-3">
