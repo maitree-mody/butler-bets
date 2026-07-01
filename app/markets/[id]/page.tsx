@@ -3,15 +3,35 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { priceYes } from '@/lib/lmsr'
 import { displayNameFromEmail } from '@/lib/display-name'
+import { inferCategory } from '@/lib/category'
+import { isoTimestampHoursAgo } from '@/lib/time'
 import Nav from '@/app/components/Nav'
+import Badge from '@/app/components/ui/Badge'
 import TradePanel from './TradePanel'
 import ResolvePanel from './ResolvePanel'
+import ShareButton from './ShareButton'
+import CollapsibleSummary from './CollapsibleSummary'
 import PriceChart, { type PricePoint } from './PriceChart'
 
 type MarketPosition = {
   yes_shares: number | string
   no_shares: number | string
   users: { email: string | null; display_name: string | null } | Array<{ email: string | null; display_name: string | null }> | null
+}
+
+type TradeDetail = {
+  price_after: number
+  created_at: string
+  cost: number
+  side: 'yes' | 'no'
+  type: 'buy' | 'sell'
+  shares: number
+  users: { email: string | null; display_name: string | null } | Array<{ email: string | null; display_name: string | null }> | null
+}
+
+function firstUser(u: TradeDetail['users']): { email: string | null; display_name: string | null } | null {
+  if (u === null) return null
+  return Array.isArray(u) ? u[0] ?? null : u
 }
 
 export default async function MarketPage({ params }: { params: Promise<{ id: string }> }) {
@@ -24,7 +44,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
   const [{ data: market }, { data: profile }, { data: trades }, { data: positions }, { data: myPosition }] = await Promise.all([
     supabase.from('markets').select('id, question, description, closes_at, status, b, q_yes, q_no, resolution, resolved_at, created_at, created_by').eq('id', id).single(),
     supabase.from('users').select('is_admin, crowns').eq('id', user.id).single(),
-    supabase.from('trades').select('price_after, created_at').eq('market_id', id).order('created_at', { ascending: true }),
+    supabase.from('trades').select('price_after, created_at, cost, side, type, shares, users(display_name, email)').eq('market_id', id).order('created_at', { ascending: true }),
     supabase.from('positions').select('yes_shares, no_shares, users(email, display_name)').eq('market_id', id),
     supabase.from('positions').select('yes_shares, no_shares').eq('market_id', id).eq('user_id', user.id).maybeSingle(),
   ])
@@ -50,7 +70,8 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
   const userYesShares = Number(myPosition?.yes_shares ?? 0)
   const userNoShares = Number(myPosition?.no_shares ?? 0)
 
-  const tradePoints: PricePoint[] = (trades ?? []).map((t) => ({ time: t.created_at, price: Number(t.price_after) }))
+  const tradeDetails = (trades ?? []) as unknown as TradeDetail[]
+  const tradePoints: PricePoint[] = tradeDetails.map((t) => ({ time: t.created_at, price: Number(t.price_after) }))
   const pricePoints: PricePoint[] = [
     { time: market.created_at, price: 0.5 },
     ...tradePoints,
@@ -77,6 +98,35 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
     ? new Date(lastTrade.time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
     : null
   const closeDate = new Date(market.closes_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+  const category = inferCategory(market.question)
+
+  // Price-change indicator: last vs. second-to-last point already in the chart array.
+  const priceBefore = tradePoints.length >= 2 ? tradePoints.at(-2)!.price : null
+  const priceChangePts = priceBefore !== null ? yesProb - priceBefore : null
+
+  // Stats derived from the augmented trades array — no extra queries needed.
+  const totalVolume = tradeDetails.reduce((sum, t) => sum + Math.abs(Number(t.cost)), 0)
+  const oneDayAgo = isoTimestampHoursAgo(24)
+  const volume24h = tradeDetails
+    .filter((t) => t.created_at >= oneDayAgo)
+    .reduce((sum, t) => sum + Math.abs(Number(t.cost)), 0)
+  const openInterest = ((positions ?? []) as MarketPosition[])
+    .filter((p) => Number(p.yes_shares) > 0 || Number(p.no_shares) > 0).length
+
+  const recentActivity = [...tradeDetails]
+    .reverse()
+    .slice(0, 8)
+    .map((t) => {
+      const u = firstUser(t.users)
+      return {
+        name: u?.display_name ?? displayNameFromEmail(u?.email),
+        side: t.side,
+        type: t.type,
+        shares: Number(t.shares),
+        price: Number(t.price_after),
+        time: t.created_at,
+      }
+    })
 
   return (
     <>
@@ -84,32 +134,37 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
       <main className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl px-6 py-8">
 
-          {/* Back */}
-          <Link href="/" className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-columbia">
-            ← Markets
-          </Link>
+          {/* Breadcrumb */}
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Link href="/" className="font-medium transition-colors hover:text-columbia">All markets</Link>
+            <span aria-hidden="true">/</span>
+            <span className={category.color}>{category.label}</span>
+          </nav>
 
           {/* Header card */}
-          <div className="mt-5 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-7">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                isOpen
-                  ? 'bg-success/10 text-success'
-                  : 'bg-muted text-muted-foreground'
-              }`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${isOpen ? 'bg-success' : 'bg-muted-foreground'}`} />
-                {market.status}
-              </span>
-              <span className="text-xs text-muted-foreground">·</span>
-              <span className="text-xs text-muted-foreground">Expires {closeDate}</span>
-              {lastTradeLabel && (
-                <>
-                  <span className="text-xs text-muted-foreground">·</span>
-                  <span className="text-xs text-muted-foreground">
-                    {tradePoints.length} trade{tradePoints.length !== 1 ? 's' : ''} · last {lastTradeLabel}
-                  </span>
-                </>
-              )}
+          <div className="mt-3 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-7">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
+                  isOpen
+                    ? 'bg-success/10 text-success'
+                    : 'bg-muted text-muted-foreground'
+                }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${isOpen ? 'bg-success' : 'bg-muted-foreground'}`} />
+                  {market.status}
+                </span>
+                <span className="text-xs text-muted-foreground">·</span>
+                <span className="text-xs text-muted-foreground">Expires {closeDate}</span>
+                {lastTradeLabel && (
+                  <>
+                    <span className="text-xs text-muted-foreground">·</span>
+                    <span className="text-xs text-muted-foreground">
+                      {tradePoints.length} trade{tradePoints.length !== 1 ? 's' : ''} · last {lastTradeLabel}
+                    </span>
+                  </>
+                )}
+              </div>
+              <ShareButton title={market.question} />
             </div>
             <h1 className="font-display text-2xl font-bold leading-snug tracking-tight text-columbia-deep sm:text-3xl">
               {market.question}
@@ -117,6 +172,9 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
             {market.description && (
               <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{market.description}</p>
             )}
+            <div className="mt-3 flex items-center gap-1.5">
+              <Badge tone="columbia">{category.label}</Badge>
+            </div>
           </div>
 
           {/* Main grid */}
@@ -125,14 +183,18 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
             {/* Left */}
             <div className="flex flex-col gap-6">
 
-              {/* Price cards */}
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Current Prices</p>
+              {/* Market summary (collapsible) */}
+              <CollapsibleSummary title="Market summary">
                 <div className="grid grid-cols-2 gap-4">
                   <a href={isResolved ? '#market-result' : '#trade-ticket'}>
                     <div className="rounded-xl border border-columbia/20 bg-columbia-soft/60 px-4 py-4 transition-all hover:border-columbia hover:shadow-md">
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Yes</p>
                       <p className="font-display mt-1 text-4xl font-bold leading-none text-columbia">{yesPct}¢</p>
+                      {priceChangePts !== null && (
+                        <p className={`mt-1 text-xs font-semibold ${priceChangePts >= 0 ? 'text-success' : 'text-danger'}`}>
+                          {priceChangePts >= 0 ? '▲' : '▼'} {Math.abs(Math.round(priceChangePts * 100))}¢
+                        </p>
+                      )}
                       <p className="mt-2 text-xs font-semibold text-success">
                         {yesPct > 50 ? `▲ ${yesPct - 50}pts above even` : yesPct < 50 ? `▼ ${50 - yesPct}pts below even` : '— at 50/50'}
                       </p>
@@ -142,6 +204,11 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                     <div className="rounded-xl border border-danger/20 bg-danger/5 px-4 py-4 transition-all hover:border-danger hover:shadow-md">
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">No</p>
                       <p className="font-display mt-1 text-4xl font-bold leading-none text-danger">{noPct}¢</p>
+                      {priceChangePts !== null && (
+                        <p className={`mt-1 text-xs font-semibold ${priceChangePts <= 0 ? 'text-success' : 'text-danger'}`}>
+                          {priceChangePts <= 0 ? '▲' : '▼'} {Math.abs(Math.round(priceChangePts * 100))}¢
+                        </p>
+                      )}
                       <p className="mt-2 text-xs font-semibold text-muted-foreground">
                         {isResolved ? 'View result ↓' : 'Click to trade ↓'}
                       </p>
@@ -159,40 +226,68 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                 </div>
 
                 {/* Stats */}
-                <div className="mt-5 flex items-center gap-6 border-t border-border pt-4">
+                <div className="mt-5 grid grid-cols-3 gap-4 border-t border-border pt-4 sm:grid-cols-6">
                   <div><p className="text-xs text-muted-foreground">Total shares</p><p className="font-semibold text-foreground">{volume.toLocaleString()}</p></div>
                   <div><p className="text-xs text-muted-foreground">Liquidity (b)</p><p className="font-semibold text-foreground">{Number(market.b).toLocaleString()}</p></div>
                   <div><p className="text-xs text-muted-foreground">Trades</p><p className="font-semibold text-foreground">{tradePoints.length}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Total volume</p><p className="font-semibold text-foreground">{totalVolume.toFixed(0)} ♛</p></div>
+                  <div><p className="text-xs text-muted-foreground">Open interest</p><p className="font-semibold text-foreground">{openInterest}</p></div>
+                  <div><p className="text-xs text-muted-foreground">24h volume</p><p className="font-semibold text-foreground">{volume24h.toFixed(0)} ♛</p></div>
                 </div>
-              </div>
+              </CollapsibleSummary>
 
               {/* Chart */}
               <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
                 <PriceChart points={pricePoints} />
               </div>
 
-              {/* Top traders */}
-              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-                <div className="border-b border-border px-5 py-4">
-                  <h2 className="text-sm font-semibold text-foreground">Top traders in this market</h2>
+              {/* Top traders + Recent activity */}
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                  <div className="border-b border-border px-5 py-4">
+                    <h2 className="text-sm font-semibold text-foreground">Top traders in this market</h2>
+                  </div>
+                  {topTraders.length > 0 ? (
+                    <ol>
+                      {topTraders.map((trader, i) => (
+                        <li key={`${trader.displayName}-${i}`} className="flex items-center justify-between border-b border-border px-5 py-3.5 last:border-0">
+                          <div className="flex items-center gap-3">
+                            <span className="grid h-6 w-6 place-items-center rounded-full bg-columbia-soft text-xs font-bold text-columbia">
+                              {i + 1}
+                            </span>
+                            <span className="text-sm font-semibold text-foreground">{trader.displayName}</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">{trader.totalShares.toLocaleString()} shares</span>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p className="px-5 py-8 text-center text-sm text-muted-foreground">No positions yet — be the first to trade.</p>
+                  )}
                 </div>
-                {topTraders.length > 0 ? (
-                  <ol>
-                    {topTraders.map((trader, i) => (
-                      <li key={`${trader.displayName}-${i}`} className="flex items-center justify-between border-b border-border px-5 py-3.5 last:border-0">
-                        <div className="flex items-center gap-3">
-                          <span className="grid h-6 w-6 place-items-center rounded-full bg-columbia-soft text-xs font-bold text-columbia">
-                            {i + 1}
-                          </span>
-                          <span className="text-sm font-semibold text-foreground">{trader.displayName}</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground">{trader.totalShares.toLocaleString()} shares</span>
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <p className="px-5 py-8 text-center text-sm text-muted-foreground">No positions yet — be the first to trade.</p>
-                )}
+
+                <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                  <div className="border-b border-border px-5 py-4">
+                    <h2 className="text-sm font-semibold text-foreground">Recent activity</h2>
+                  </div>
+                  {recentActivity.length > 0 ? (
+                    <ul>
+                      {recentActivity.map((a, i) => (
+                        <li key={i} className="flex items-center justify-between gap-2 border-b border-border px-5 py-3 last:border-0">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${a.side === 'yes' ? 'bg-columbia' : 'bg-danger'}`} />
+                            <span className="min-w-0 truncate text-sm text-foreground">
+                              {a.type === 'sell' ? 'Sold' : 'Bought'} {a.shares} <span className="font-semibold uppercase">{a.side}</span>
+                            </span>
+                          </div>
+                          <span className="shrink-0 text-xs text-muted-foreground">{a.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="px-5 py-8 text-center text-sm text-muted-foreground">No trades yet — be the first.</p>
+                  )}
+                </div>
               </div>
             </div>
 
