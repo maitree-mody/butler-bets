@@ -146,23 +146,25 @@ export default async function HomePage({
 
       {/* ── HERO ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
+        {/* Low Library watermark — same background used on the login page */}
+        <div
+          className="pointer-events-none absolute inset-0 bg-no-repeat"
+          style={{
+            backgroundImage: 'url(/low-library.png)',
+            backgroundSize: '100% 143%',
+            backgroundPosition: '50% -60px',
+            opacity: 0.4,
+          }}
+          aria-hidden="true"
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-columbia-soft/60 to-transparent" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-6 pb-8 pt-6 lg:grid-cols-2">
 
           {/* Left: copy */}
           <div className="relative">
-            {/* Alma Mater watermark */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/alma-mater.png"
-              alt=""
-              aria-hidden
-              className="pointer-events-none absolute -right-10 top-0 hidden h-[520px] w-auto object-contain opacity-25 lg:block"
-            />
-
             <h1 className="relative font-display text-4xl leading-[1.05] tracking-tight text-columbia-deep sm:text-5xl md:text-6xl lg:text-7xl">
               {HERO_LINE_1}<br />
-              {HERO_LINE_2}
+              <em className="italic text-columbia" style={{ fontFamily: 'var(--font-display)' }}>{HERO_LINE_2}</em>
             </h1>
             <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
               Campus-powered prediction markets for Columbia students. Built on research, driven by insight.

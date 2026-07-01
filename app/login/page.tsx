@@ -81,7 +81,8 @@ export default async function LoginPage({
               <Crown className="h-6 w-6 text-columbia" strokeWidth={2} />
             </div>
             <h1 className="text-center font-display text-2xl font-bold tracking-tight text-[#0a0a0a]">
-              {HERO_LINE_1} {HERO_LINE_2}
+              {HERO_LINE_1}{' '}
+              <em className="italic text-columbia" style={{ fontFamily: 'var(--font-display)' }}>{HERO_LINE_2}</em>
             </h1>
             <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">
               Play-money prediction markets on campus events. Sign in with your Columbia or Barnard account.
