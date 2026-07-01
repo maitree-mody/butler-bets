@@ -18,8 +18,8 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
   const [side, setSide] = useState<'yes' | 'no'>('yes')
   const [sharesInput, setSharesInput] = useState('10')
   const [isPending, startTransition] = useTransition()
-  const [result, setResult] = useState<string | null>(null)
-  const [error, setError]   = useState<string | null>(null)
+  const [successInfo, setSuccessInfo] = useState<{ shares: number; side: string; cost: number; newCrowns: number } | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const MAX_SHARES = 100_000
 
@@ -38,14 +38,14 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
 
   function handleTrade() {
     if (validShares === 0) return
-    setResult(null)
+    setSuccessInfo(null)
     setError(null)
     startTransition(async () => {
       const res = await executeTradeAction(marketId, side, validShares)
       if ('error' in res) {
         setError(res.error)
       } else {
-        setResult(`Bought ${validShares} ${side.toUpperCase()} for ${res.data.cost.toFixed(2)} crowns. Balance: ${res.data.new_crowns.toFixed(2)} crowns.`)
+        setSuccessInfo({ shares: validShares, side, cost: res.data.cost, newCrowns: res.data.new_crowns })
         router.refresh()
       }
     })
@@ -156,10 +156,10 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
         type="button"
         onClick={handleTrade}
         disabled={isPending || validShares === 0 || exceedsMax}
-        className={`pressable w-full rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+        className={`pressable w-full rounded-xl py-4 text-base font-bold text-white shadow-lg transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
           side === 'yes'
-            ? 'bg-columbia shadow-columbia/25 hover:bg-columbia-deep'
-            : 'bg-danger shadow-danger/25 hover:bg-red-700'
+            ? 'bg-gradient-to-b from-columbia to-columbia/90 shadow-columbia/30 hover:from-columbia-deep hover:to-columbia-deep'
+            : 'bg-gradient-to-b from-danger to-danger/90 shadow-danger/30 hover:from-red-700 hover:to-red-700'
         }`}
       >
         {isPending ? 'Placing order…' : `Buy ${side.toUpperCase()} · ${previewCost.toFixed(2)} ♛`}
@@ -167,10 +167,15 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance }:
 
       {/* Feedback */}
       <div aria-live="polite">
-        {result && (
-          <p className="mt-3 rounded-xl border border-success/30 bg-success/10 px-3 py-2.5 text-sm text-success">
-            {result}
-          </p>
+        {successInfo && (
+          <div className="mt-3 rounded-xl border border-success/25 bg-success/8 px-4 py-3">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-success">
+              <span>✓</span> Order filled
+            </p>
+            <p className="mt-0.5 text-xs text-success/70">
+              {successInfo.shares} {successInfo.side.toUpperCase()} · cost {successInfo.cost.toFixed(2)} ♛ · balance {successInfo.newCrowns.toFixed(2)} ♛
+            </p>
+          </div>
         )}
         {error && (
           <p className="mt-3 rounded-xl border border-danger/30 bg-danger/5 px-3 py-2.5 text-sm text-danger">

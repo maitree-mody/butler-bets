@@ -231,7 +231,6 @@ export default async function HomePage({
               const recentTrades = recentTradeCounts.get(market.id) ?? 0
               const isOpen = market.status === 'open'
               const cat = inferCategory(market.question)
-              const trend: 'up' | 'down' = yesPct >= 50 ? 'up' : 'down'
               const tradesLabel = recentTrades >= 1000
                 ? `${(recentTrades / 1000).toFixed(1)}K`
                 : String(recentTrades)
@@ -261,30 +260,30 @@ export default async function HomePage({
                       {market.question}
                     </p>
 
-                    {/* Big % */}
-                    <div className="mt-3 flex items-baseline gap-1.5">
-                      <span
-                        className="font-display text-3xl font-bold"
-                        style={{ color: cat.sparkColor }}
-                      >
-                        {yesPct}%
-                      </span>
-                      <span className="text-xs text-muted-foreground">Yes</span>
+                    {/* YES % + inline prices */}
+                    <div className="mt-3">
+                      <div className="flex items-baseline gap-1.5">
+                        <span
+                          className="font-display text-3xl font-bold"
+                          style={{ color: cat.sparkColor }}
+                        >
+                          {yesPct}%
+                        </span>
+                        <span className="text-xs text-muted-foreground">chance</span>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Yes <span className="font-semibold text-columbia">{yesPct}¢</span>
+                        {' · '}
+                        No <span className="font-semibold text-danger">{noPct}¢</span>
+                      </p>
                     </div>
 
-                    {/* Sparkline */}
-                    <Sparkline color={cat.sparkColor} trend={trend} />
-
-                    {/* YES / NO boxes */}
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      <div className="rounded-md border border-columbia/20 bg-columbia-soft/60 py-2 text-center">
-                        <div className="font-display text-base font-bold text-columbia">{yesPct}¢</div>
-                        <div className="text-[10px] text-muted-foreground">Yes</div>
-                      </div>
-                      <div className="rounded-md border border-danger/20 bg-danger/5 py-2 text-center">
-                        <div className="font-display text-base font-bold text-danger">{noPct}¢</div>
-                        <div className="text-[10px] text-muted-foreground">No</div>
-                      </div>
+                    {/* Probability bar */}
+                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-danger/10">
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${yesPct}%`, backgroundColor: cat.sparkColor }}
+                      />
                     </div>
 
                     {/* Footer */}
