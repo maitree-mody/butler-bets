@@ -434,16 +434,13 @@ function HowItWorks() {
         <a href="#markets" className="text-xs font-semibold text-columbia hover:text-columbia-deep">Learn more →</a>
       </div>
       <div className="space-y-4">
-        {steps.map((s, i) => (
+        {steps.map((s) => (
           <div key={s.t} className="flex gap-3">
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-columbia-soft">
               <s.Icon className="h-4 w-4 text-columbia" strokeWidth={1.6} />
             </div>
             <div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="font-display text-sm font-bold text-columbia-deep">{i + 1}</span>
-                <h3 className="text-sm font-semibold text-foreground">{s.t}</h3>
-              </div>
+              <h3 className="text-sm font-semibold text-foreground">{s.t}</h3>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{s.d}</p>
             </div>
           </div>
