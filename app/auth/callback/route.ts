@@ -18,12 +18,8 @@ export async function GET(request: NextRequest) {
 
   if (exchangeError) {
     const msg = exchangeError.message ?? ''
-    if (msg.includes('signup_domain_not_allowed')) {
-      return NextResponse.redirect(
-        new URL('/login?error=Only+Columbia+and+Barnard+emails+are+allowed', origin)
-      )
-    }
-    return NextResponse.redirect(new URL('/login?error=Could+not+sign+in', origin))
+    const errorCode = msg.includes('signup_domain_not_allowed') ? 'invalid_domain' : 'auth_failed'
+    return NextResponse.redirect(new URL(`/login?error=${errorCode}`, origin))
   }
 
   const {
@@ -40,9 +36,7 @@ export async function GET(request: NextRequest) {
       const adminClient = createAdminClient()
       await adminClient.auth.admin.deleteUser(user.id)
     }
-    return NextResponse.redirect(
-      new URL('/login?error=Only+Columbia+and+Barnard+emails+are+allowed', origin)
-    )
+    return NextResponse.redirect(new URL('/login?error=invalid_domain', origin))
   }
 
   const { data: profile } = await supabase
