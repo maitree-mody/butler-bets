@@ -21,8 +21,8 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: market }, { data: profile }, { data: trades }, { data: positions }, { data: myPosition }] = await Promise.all([
-    supabase.from('markets').select('id, question, description, closes_at, status, b, q_yes, q_no, resolution, resolved_at, created_at').eq('id', id).single(),
+  const [{ data: market }, { data: profile }, { data: trades }, { data: positions }] = await Promise.all([
+    supabase.from('markets').select('id, question, description, closes_at, status, b, q_yes, q_no, resolution, resolved_at, created_at, created_by').eq('id', id).single(),
     supabase.from('users').select('is_admin, crowns').eq('id', user.id).single(),
     supabase.from('trades').select('price_after, created_at').eq('market_id', id).order('created_at', { ascending: true }),
     supabase.from('positions').select('yes_shares, no_shares, users(email, display_name)').eq('market_id', id),
@@ -45,6 +45,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
 
   const userProfile = profile as { is_admin?: boolean; crowns?: number } | null
   const isAdmin = userProfile?.is_admin ?? false
+  const isCreator = market.created_by === user.id
   const availableBalance = Number(userProfile?.crowns ?? 0)
   const userYesShares = Number(myPosition?.yes_shares ?? 0)
   const userNoShares = Number(myPosition?.no_shares ?? 0)
@@ -197,7 +198,12 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
 
             {/* Right: trade panel */}
             <aside className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
-              {isOpen ? (
+              {isOpen && isCreator ? (
+                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your market</p>
+                  <p className="mt-2 text-sm text-muted-foreground">You created this market and can resolve it, but cannot trade on it.</p>
+                </div>
+              ) : isOpen ? (
                 <TradePanel
                   marketId={market.id}
                   qYes={Number(market.q_yes)}
@@ -234,7 +240,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                   )}
                 </div>
               )}
-              {isAdmin && isOpen && <ResolvePanel marketId={market.id} />}
+              {(isAdmin || isCreator) && isOpen && <ResolvePanel marketId={market.id} />}
             </aside>
           </div>
         </div>

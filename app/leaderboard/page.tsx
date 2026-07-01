@@ -14,21 +14,35 @@ export default async function LeaderboardPage() {
 
   if (!user) redirect('/login')
 
-  const [usersResult, tradesResult] = await Promise.all([
-    supabase.from('users').select('id, email, crowns, display_name'),
-    supabase.from('trades').select('user_id'),
-  ])
+  // Step 1: fetch every trade row (just user_id for counting).
+  // We need this first so we can filter users at the DB level in step 2.
+  const { data: tradeRows, error: tradesError } = await supabase
+    .from('trades')
+    .select('user_id')
 
-  const error = usersResult.error ?? tradesResult.error
+  // Build per-user trade counts and the set of IDs that have ever traded.
   const tradeCounts = new Map<string, number>()
-  for (const trade of tradesResult.data ?? []) {
-    tradeCounts.set(trade.user_id, (tradeCounts.get(trade.user_id) ?? 0) + 1)
+  for (const row of tradeRows ?? []) {
+    tradeCounts.set(row.user_id, (tradeCounts.get(row.user_id) ?? 0) + 1)
   }
+  const traderIds = [...tradeCounts.keys()]
 
-  const rankedUsers = (usersResult.data ?? [])
+  // Step 2: fetch ONLY users who appear in the trades table.
+  // .in() filters at the database level — no client-side filter required.
+  const { data: usersData, error: usersError } =
+    traderIds.length === 0
+      ? { data: [] as { id: string; email: string | null; crowns: number; display_name: string | null }[], error: null }
+      : await supabase
+          .from('users')
+          .select('id, email, crowns, display_name')
+          .in('id', traderIds)
+
+  const error = tradesError ?? usersError
+
+  const rankedUsers = (usersData ?? [])
     .map((entry) => ({
       ...entry,
-      displayName: (entry as { display_name?: string | null }).display_name ?? displayNameFromEmail(entry.email),
+      displayName: entry.display_name ?? displayNameFromEmail(entry.email),
       profit: Number(entry.crowns) - STARTING_CROWNS,
       tradeCount: tradeCounts.get(entry.id) ?? 0,
     }))
@@ -58,7 +72,7 @@ export default async function LeaderboardPage() {
             </div>
 
             {/* Rank summary card */}
-            {myRow && !error && (
+            {!error && (myRow ? (
               <div className="font-numeric shrink-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
                 <div className="flex gap-6">
                   <div>
@@ -76,14 +90,19 @@ export default async function LeaderboardPage() {
                   </div>
                 </div>
               </div>
-            )}
+            ) : (
+              <div className="shrink-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <p className="text-sm font-semibold text-foreground">Not ranked yet</p>
+                <p className="mt-1 text-xs text-muted-foreground">Make your first trade to join the leaderboard.</p>
+              </div>
+            ))}
           </div>
         </header>
 
         {/* Table */}
         <section className="reveal reveal-delay-1" aria-labelledby="ranking-title">
           <h2 id="ranking-title" className="eyebrow mb-3">
-            Top {Math.min(LEADERBOARD_LIMIT, rankedUsers.length)} traders
+            Top {Math.min(LEADERBOARD_LIMIT, rankedUsers.length)} active traders
           </h2>
 
           {error ? (

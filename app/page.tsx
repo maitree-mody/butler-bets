@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import {
-  Crown, Home as HomeIcon, BarChart3, LineChart, Megaphone, Users, Trophy, Settings,
+  Crown, Home as HomeIcon, BarChart3, Megaphone, Trophy, Settings, Users,
   Search, TrendingUp, BookOpen, ArrowRight, Snowflake, Landmark, Volleyball,
   Building2,
 } from 'lucide-react'
@@ -93,6 +93,12 @@ export default async function HomePage({
     if (currentView === 'active') return recentTradeCounts.has(m.id)
     return true
   })
+  if (currentView === 'all') {
+    filteredMarkets.sort((a, b) => {
+      const p = (s: string) => s === 'open' ? 0 : s === 'resolved' ? 1 : 2
+      return p(a.status) - p(b.status)
+    })
+  }
 
   const crowns = Number(userProfile?.crowns ?? 0)
   const marketsTraded = positionsResult.data?.length ?? 0
@@ -354,25 +360,33 @@ function DashboardMock({
     { l: 'Rank',            v: 'Top 12%' },
   ]
 
-  const sidebarIcons = [HomeIcon, BarChart3, LineChart, Megaphone, Users, Trophy]
+  const sidebarLinks = [
+    { Icon: HomeIcon,  label: 'Home',         href: '/' },
+    { Icon: BarChart3, label: 'Charts',        href: '#markets' },
+    { Icon: Megaphone, label: 'Announcements', href: '/notifications' },
+    { Icon: Trophy,    label: 'Leaderboard',   href: '/leaderboard' },
+  ]
 
   return (
     <div className="flex overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-columbia/10">
       {/* Blue sidebar */}
       <aside className="flex w-14 flex-col items-center gap-5 bg-columbia py-5 text-primary-foreground/80">
-        {sidebarIcons.map((Icon, i) => (
-          <button
-            key={i}
-            aria-label={['Home', 'Charts', 'Trends', 'Announcements', 'Community', 'Leaderboard'][i]}
+        {sidebarLinks.map(({ Icon, label, href }, i) => (
+          <Link
+            key={label}
+            href={href}
+            aria-label={label}
             className={`grid h-9 w-9 place-items-center rounded-md ${
               i === 1 ? 'bg-white/15 text-white' : 'hover:bg-white/10'
             }`}
           >
             <Icon className="h-4 w-4" strokeWidth={1.8} />
-          </button>
+          </Link>
         ))}
         <div className="flex-1" />
-        <Settings className="h-4 w-4 opacity-70" strokeWidth={1.8} />
+        <Link href="/profile" aria-label="Profile" className="hover:opacity-100 opacity-70">
+          <Settings className="h-4 w-4" strokeWidth={1.8} />
+        </Link>
       </aside>
 
       {/* Main white area */}

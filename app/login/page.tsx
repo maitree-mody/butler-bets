@@ -18,12 +18,19 @@ async function getSocialProof() {
   }
 }
 
+const ERROR_MESSAGES: Record<string, string> = {
+  invalid_domain:
+    'Only Columbia and Barnard emails are allowed. Please sign in with your @columbia.edu or @barnard.edu email.',
+  auth_failed: 'Sign-in failed. Please try again.',
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
   const { error } = await searchParams
+  const errorMessage = error ? (ERROR_MESSAGES[error] ?? 'Something went wrong. Please try again.') : null
   const { traders, openMarkets } = await getSocialProof()
 
   return (
@@ -61,10 +68,16 @@ export default async function LoginPage({
             Trade play-money contracts on campus events. Sign in with your Columbia or Barnard account.
           </p>
 
-          {error && (
-            <p className="mt-5 rounded-lg border border-danger/30 bg-danger/5 px-3 py-2.5 text-sm text-danger" role="alert">
-              {error}
-            </p>
+          {errorMessage && (
+            <div
+              className="mt-5 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700"
+              role="alert"
+            >
+              <svg className="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+              </svg>
+              <span>{errorMessage}</span>
+            </div>
           )}
 
           <form action={signInWithGoogle} className="mt-6">

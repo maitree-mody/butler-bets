@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Libre_Caslon_Text } from "next/font/google";
 import "./globals.css";
 import NotificationsProvider from "@/app/components/NotificationsProvider";
+import ActivityTicker from "@/app/components/ActivityTicker";
 
 const libreCaslon = Libre_Caslon_Text({
   variable: "--font-display",
@@ -34,6 +35,7 @@ export default function RootLayout({
         <NotificationsProvider>
           {children}
         </NotificationsProvider>
+        <ActivityTicker />
       </body>
     </html>
   );
