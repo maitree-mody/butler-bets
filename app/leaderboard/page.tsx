@@ -1,9 +1,11 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { displayNameFromEmail } from '@/lib/display-name'
+import { rankUsers } from '@/lib/ranking'
 import Nav from '@/app/components/Nav'
+import Card from '@/app/components/ui/Card'
+import Badge from '@/app/components/ui/Badge'
+import Alert from '@/app/components/ui/Alert'
 
-const STARTING_CROWNS = 1000
 const LEADERBOARD_LIMIT = 10
 
 export default async function LeaderboardPage() {
@@ -39,14 +41,7 @@ export default async function LeaderboardPage() {
 
   const error = tradesError ?? usersError
 
-  const rankedUsers = (usersData ?? [])
-    .map((entry) => ({
-      ...entry,
-      displayName: entry.display_name ?? displayNameFromEmail(entry.email),
-      profit: Number(entry.crowns) - STARTING_CROWNS,
-      tradeCount: tradeCounts.get(entry.id) ?? 0,
-    }))
-    .sort((a, b) => b.profit - a.profit || b.tradeCount - a.tradeCount || a.displayName.localeCompare(b.displayName))
+  const rankedUsers = rankUsers(usersData ?? [], tradeCounts)
 
   const topUsers = rankedUsers.slice(0, LEADERBOARD_LIMIT)
   const myRank = rankedUsers.findIndex((entry) => entry.id === user.id) + 1
@@ -73,7 +68,7 @@ export default async function LeaderboardPage() {
 
             {/* Rank summary card */}
             {!error && (myRow ? (
-              <div className="font-numeric shrink-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <Card padding="md" className="font-numeric shrink-0">
                 <div className="flex gap-6">
                   <div>
                     <p className="eyebrow mb-1">Your rank</p>
@@ -89,12 +84,12 @@ export default async function LeaderboardPage() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </Card>
             ) : (
-              <div className="shrink-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <Card padding="md" className="shrink-0">
                 <p className="text-sm font-semibold text-foreground">Not ranked yet</p>
                 <p className="mt-1 text-xs text-muted-foreground">Make your first trade to join the leaderboard.</p>
-              </div>
+              </Card>
             ))}
           </div>
         </header>
@@ -106,15 +101,15 @@ export default async function LeaderboardPage() {
           </h2>
 
           {error ? (
-            <p className="rounded-xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger" role="alert">
+            <Alert tone="danger" role="alert">
               Failed to load leaderboard: {error.message}
-            </p>
+            </Alert>
           ) : rankedUsers.length === 0 ? (
             <p className="rounded-xl border border-border py-12 text-center text-sm text-muted-foreground">
               No traders yet.
             </p>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+            <Card padding="none" className="overflow-hidden">
               <table className="font-numeric w-full table-fixed" aria-label="Trader rankings">
                 <thead>
                   <tr className="border-b border-border bg-muted/60">
@@ -151,9 +146,7 @@ export default async function LeaderboardPage() {
                               {entry.displayName}
                             </span>
                             {isMe && (
-                              <span className="shrink-0 rounded-full bg-columbia-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-columbia">
-                                you
-                              </span>
+                              <Badge tone="columbia" className="shrink-0">you</Badge>
                             )}
                           </div>
                         </td>
@@ -176,9 +169,7 @@ export default async function LeaderboardPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-semibold text-columbia">{myRow.displayName}</span>
-                          <span className="rounded-full bg-columbia-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-columbia">
-                            you
-                          </span>
+                          <Badge tone="columbia">you</Badge>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right text-sm text-muted-foreground">{myRow.tradeCount}</td>
@@ -191,7 +182,7 @@ export default async function LeaderboardPage() {
                   </tfoot>
                 )}
               </table>
-            </div>
+            </Card>
           )}
         </section>
       </main>
