@@ -60,3 +60,19 @@ export function tradeCost(
       : cost(qYes, qNo + shares, b);
   return after - before;
 }
+
+/**
+ * Crowns paid out to a trader selling `shares` of `side`, the mirror of
+ * tradeCost: payout = C(before) - C(after). Reuses tradeCost with negated
+ * shares since tradeCost(..., -shares) = C(before - shares) - C(before),
+ * which is exactly -payout.
+ */
+export function sellPayout(
+  qYes: number,
+  qNo: number,
+  b: number,
+  side: 'yes' | 'no',
+  shares: number,
+): number {
+  return -tradeCost(qYes, qNo, b, side, -shares);
+}

@@ -10,6 +10,7 @@ type TradeRow = {
   id: string
   market_id: string
   side: string
+  type: string
   shares: number
   cost: number
   created_at: string
@@ -46,7 +47,7 @@ export default async function ProfilePage() {
         .single(),
       supabase
         .from('trades')
-        .select('id, market_id, side, shares, cost, created_at, markets(question)')
+        .select('id, market_id, side, type, shares, cost, created_at, markets(question)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false }),
       supabase
@@ -241,6 +242,9 @@ export default async function ProfilePage() {
                         Market
                       </th>
                       <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                        Type
+                      </th>
+                      <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                         Side
                       </th>
                       <th className="py-3 pr-4 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -262,6 +266,15 @@ export default async function ProfilePage() {
                       >
                         <td className="max-w-[14rem] truncate py-3.5 pl-5 pr-4 text-sm font-medium text-foreground">
                           {trade.markets?.question ?? '—'}
+                        </td>
+                        <td className="py-3.5 pr-4 text-right">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                            trade.type === 'sell'
+                              ? 'bg-muted text-muted-foreground'
+                              : 'bg-success/10 text-success'
+                          }`}>
+                            {trade.type}
+                          </span>
                         </td>
                         <td className="py-3.5 pr-4 text-right">
                           <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${

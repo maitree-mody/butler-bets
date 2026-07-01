@@ -68,3 +68,55 @@ export async function executeTradeAction(
 
   return { data }
 }
+
+type SellResult =
+  | { data: { q_yes: number; q_no: number; price_yes: number; payout: number; new_crowns: number } }
+  | { error: string }
+
+export async function sellSharesAction(
+  marketId: string,
+  side: string,
+  shares: number,
+): Promise<SellResult> {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'You must be logged in to trade.' }
+
+  if (side !== 'yes' && side !== 'no') {
+    return { error: "Side must be 'yes' or 'no'." }
+  }
+
+  if (!Number.isInteger(shares) || shares <= 0) {
+    return { error: 'Shares must be a positive whole number.' }
+  }
+
+  if (shares > MAX_SHARES) {
+    return { error: `Share count cannot exceed ${MAX_SHARES.toLocaleString()} per trade.` }
+  }
+
+  const { data, error } = await supabase.rpc('sell_shares', {
+    p_market_id: marketId,
+    p_side: side,
+    p_shares: shares,
+  })
+
+  if (error) {
+    const msg = error.message.toLowerCase()
+    if (msg.includes('insufficient shares')) {
+      return { error: "You don't have enough shares to sell." }
+    }
+    if (msg.includes('not open') || msg.includes('market is not open')) {
+      return { error: 'This market is not open for trading.' }
+    }
+    if (msg.includes('share count cannot exceed')) {
+      return { error: `Share count cannot exceed ${MAX_SHARES.toLocaleString()} per trade.` }
+    }
+    return { error: error.message }
+  }
+
+  return { data }
+}

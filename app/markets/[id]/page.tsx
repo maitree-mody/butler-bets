@@ -21,11 +21,12 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: market }, { data: profile }, { data: trades }, { data: positions }] = await Promise.all([
+  const [{ data: market }, { data: profile }, { data: trades }, { data: positions }, { data: myPosition }] = await Promise.all([
     supabase.from('markets').select('id, question, description, closes_at, status, b, q_yes, q_no, resolution, resolved_at, created_at').eq('id', id).single(),
     supabase.from('users').select('is_admin, crowns').eq('id', user.id).single(),
     supabase.from('trades').select('price_after, created_at').eq('market_id', id).order('created_at', { ascending: true }),
     supabase.from('positions').select('yes_shares, no_shares, users(email, display_name)').eq('market_id', id),
+    supabase.from('positions').select('yes_shares, no_shares').eq('market_id', id).eq('user_id', user.id).maybeSingle(),
   ])
 
   if (!market) {
@@ -45,6 +46,8 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
   const userProfile = profile as { is_admin?: boolean; crowns?: number } | null
   const isAdmin = userProfile?.is_admin ?? false
   const availableBalance = Number(userProfile?.crowns ?? 0)
+  const userYesShares = Number(myPosition?.yes_shares ?? 0)
+  const userNoShares = Number(myPosition?.no_shares ?? 0)
 
   const tradePoints: PricePoint[] = (trades ?? []).map((t) => ({ time: t.created_at, price: Number(t.price_after) }))
   const pricePoints: PricePoint[] = [
@@ -201,6 +204,8 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                   qNo={Number(market.q_no)}
                   b={Number(market.b)}
                   availableBalance={availableBalance}
+                  userYesShares={userYesShares}
+                  userNoShares={userNoShares}
                 />
               ) : (
                 <div id="market-result" className="scroll-mt-20 rounded-2xl border border-border bg-card p-5 shadow-sm">
