@@ -1,5 +1,5 @@
 -- ============================================================
--- Migration: 0012_sell_shares.sql
+-- Migration: 0013_sell_shares.sql
 -- Adds the ability to sell shares before market resolution.
 -- ============================================================
 

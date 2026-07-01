@@ -21,7 +21,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: market }, { data: profile }, { data: trades }, { data: positions }] = await Promise.all([
+  const [{ data: market }, { data: profile }, { data: trades }, { data: positions }, { data: myPosition }] = await Promise.all([
     supabase.from('markets').select('id, question, description, closes_at, status, b, q_yes, q_no, resolution, resolved_at, created_at, created_by').eq('id', id).single(),
     supabase.from('users').select('is_admin, crowns').eq('id', user.id).single(),
     supabase.from('trades').select('price_after, created_at').eq('market_id', id).order('created_at', { ascending: true }),
