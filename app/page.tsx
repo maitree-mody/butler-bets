@@ -560,7 +560,7 @@ function Footer() {
           </div>
         </div>
         <div className="flex items-center gap-6 text-muted-foreground">
-          <span>© 2025 butler bets</span>
+          <span>© 2026 butler bets</span>
           <Link href="/leaderboard" className="hover:text-columbia">Leaderboard</Link>
           <Link href="/profile"     className="hover:text-columbia">Profile</Link>
         </div>
