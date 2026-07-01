@@ -2,14 +2,29 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { displayNameFromEmail } from '@/lib/display-name'
 
-// Supabase returns joined relations as arrays (one-to-many shape from PostgREST)
+// PostgREST embeds a to-one relation (trades -> one user/market) as a single
+// object, not an array — but which shape actually comes back can vary, so
+// callers throughout this codebase normalize defensively (see MarketPosition
+// in app/markets/[id]/page.tsx). Indexing with [0] on the object shape
+// silently returns undefined, which is what was causing every row here to
+// fall back to "Someone" / "a market" regardless of the real trade data.
+type EmbeddedUser = { email: string | null; display_name: string | null }
+type EmbeddedMarket = { question: string }
+
 type TradeRow = {
   id: string
   side: 'yes' | 'no'
+  type: 'buy' | 'sell'
   shares: number
-  users: { display_name: string | null }[] | null
-  markets: { question: string }[] | null
+  users: EmbeddedUser | EmbeddedUser[] | null
+  markets: EmbeddedMarket | EmbeddedMarket[] | null
+}
+
+function first<T>(value: T | T[] | null): T | null {
+  if (value === null) return null
+  return Array.isArray(value) ? value[0] ?? null : value
 }
 
 const POLL_MS = 15_000
@@ -21,7 +36,7 @@ export default function ActivityTicker() {
   const fetchTrades = useCallback(async () => {
     const { data } = await supabase
       .from('trades')
-      .select('id, side, shares, users(display_name), markets(question)')
+      .select('id, side, type, shares, users(email, display_name), markets(question)')
       .order('created_at', { ascending: false })
       .limit(30)
     if (data) setTrades(data as unknown as TradeRow[])
@@ -69,17 +84,18 @@ export default function ActivityTicker() {
         style={{ animationDuration: `${duration}s` }}
       >
         {[...trades, ...trades].map((trade, i) => {
-          const name = trade.users?.[0]?.display_name ?? 'Someone'
-          const shares = Math.round(trade.shares)
+          const user = first(trade.users)
+          const name = user?.display_name ?? displayNameFromEmail(user?.email)
+          const shares = Math.round(Number(trade.shares))
           const side = trade.side.toUpperCase()
-          const question = trade.markets?.[0]?.question ?? 'a market'
+          const question = first(trade.markets)?.question ?? 'a market'
           const truncated = question.length > 52 ? question.slice(0, 52).trimEnd() + '…' : question
 
           return (
             <span key={`${trade.id}-${i}`} className="inline-flex shrink-0 items-center gap-1.5 px-5 text-xs">
               <span className="select-none text-columbia/40 px-1" aria-hidden="true">•</span>
               <span className="font-semibold text-columbia-deep">@{name}</span>
-              <span className="text-foreground/70">bought {shares}</span>
+              <span className="text-foreground/70">{trade.type === 'sell' ? 'sold' : 'bought'} {shares}</span>
               <span className={`font-bold ${side === 'YES' ? 'text-success' : 'text-danger'}`}>
                 {side}
               </span>
