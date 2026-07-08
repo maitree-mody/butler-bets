@@ -229,7 +229,7 @@ export default async function HomePage({
                     key={option.value}
                     href={option.value === 'all' ? '/' : `/?view=${option.value}`}
                     aria-current={selected ? 'page' : undefined}
-                    className={`pressable rounded-full px-3 py-1 text-xs font-semibold transition-all ${
+                    className={`pressable rounded-full px-3 py-1 text-xs font-semibold transition-colors duration-150 ease-out ${
                       selected
                         ? 'bg-columbia text-primary-foreground shadow-sm'
                         : 'border border-border bg-card text-muted-foreground hover:border-columbia hover:text-columbia'

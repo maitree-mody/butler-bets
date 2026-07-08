@@ -29,7 +29,7 @@ export default function StickyQuestionHeader({ question, yesPct }: { question: s
 
       <div
         aria-hidden={!pastHeading}
-        className={`fixed left-1/2 top-14 z-10 w-full max-w-7xl -translate-x-1/2 px-6 transition-all duration-300 ${
+        className={`fixed left-1/2 top-14 z-10 w-full max-w-7xl -translate-x-1/2 px-6 transition-[opacity,transform] duration-300 ease-out ${
           pastHeading ? 'translate-y-0 opacity-100' : '-translate-y-2 pointer-events-none opacity-0'
         }`}
       >

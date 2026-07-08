@@ -106,7 +106,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
             type="button"
             aria-pressed={mode === 'buy'}
             onClick={() => setMode('buy')}
-            className={`pressable rounded-xl px-3 py-1.5 text-sm font-semibold transition-all ${
+            className={`pressable rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors duration-150 ease-out ${
               mode === 'buy'
                 ? 'bg-columbia-deep text-primary-foreground shadow-sm'
                 : 'border border-border bg-background text-muted-foreground hover:border-columbia-deep'
@@ -118,7 +118,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
             type="button"
             aria-pressed={mode === 'sell'}
             onClick={() => setMode('sell')}
-            className={`pressable rounded-xl px-3 py-1.5 text-sm font-semibold transition-all ${
+            className={`pressable rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors duration-150 ease-out ${
               mode === 'sell'
                 ? 'bg-columbia-deep text-primary-foreground shadow-sm'
                 : 'border border-border bg-background text-muted-foreground hover:border-columbia-deep'
@@ -139,10 +139,10 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
             type="button"
             aria-pressed={side === 'yes'}
             onClick={() => setSide('yes')}
-            className={`pressable rounded-xl px-4 py-3 text-left transition-all ${
+            className={`pressable rounded-xl border px-4 py-3 text-left transition-colors duration-150 ease-out ${
               side === 'yes'
-                ? 'scale-[1.02] bg-columbia text-primary-foreground shadow-lg shadow-columbia/40 ring-2 ring-columbia ring-offset-2 ring-offset-card'
-                : 'border border-columbia/20 bg-columbia-soft/60 text-columbia hover:border-columbia'
+                ? 'border-columbia bg-columbia text-primary-foreground ring-1 ring-columbia/50'
+                : 'border-columbia/20 bg-columbia-soft/60 text-columbia hover:border-columbia/60'
             }`}
           >
             <span className="block text-xs font-bold uppercase tracking-widest">Yes</span>
@@ -152,10 +152,10 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
             type="button"
             aria-pressed={side === 'no'}
             onClick={() => setSide('no')}
-            className={`pressable rounded-xl px-4 py-3 text-left transition-all ${
+            className={`pressable rounded-xl border px-4 py-3 text-left transition-colors duration-150 ease-out ${
               side === 'no'
-                ? 'scale-[1.02] bg-danger text-white shadow-lg shadow-danger/40 ring-2 ring-danger ring-offset-2 ring-offset-card'
-                : 'border border-danger/20 bg-danger/5 text-danger hover:border-danger'
+                ? 'border-danger bg-danger text-white ring-1 ring-danger/50'
+                : 'border-danger/20 bg-danger/5 text-danger hover:border-danger/60'
             }`}
           >
             <span className="block text-xs font-bold uppercase tracking-widest">No</span>
@@ -253,7 +253,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
         type="button"
         onClick={handleTrade}
         disabled={isPending || validShares === 0 || exceedsMax}
-        className={`pressable w-full rounded-xl py-3 text-sm font-bold text-white shadow-md transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+        className={`pressable w-full rounded-xl py-3 text-sm font-bold text-white shadow-md transition-colors duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-40 ${
           side === 'yes'
             ? 'bg-columbia shadow-columbia/25 hover:bg-columbia-deep'
             : 'bg-danger shadow-danger/25 hover:bg-red-700'

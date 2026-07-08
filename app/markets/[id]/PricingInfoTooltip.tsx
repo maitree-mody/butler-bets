@@ -34,7 +34,7 @@ export default function PricingInfoTooltip() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-label={TITLE}
-        className={`pressable grid h-5 w-5 shrink-0 place-items-center rounded-full border transition-all ${
+        className={`pressable grid h-5 w-5 shrink-0 place-items-center rounded-full border transition-colors duration-150 ease-out ${
           open
             ? 'border-columbia bg-columbia-soft text-columbia'
             : 'border-border bg-muted text-muted-foreground hover:border-columbia/40 hover:bg-columbia-soft hover:text-columbia'
