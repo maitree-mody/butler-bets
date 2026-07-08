@@ -26,7 +26,7 @@ export default function ResolvePanel({ marketId }: { marketId: string }) {
 
   return (
     <section className="rounded-2xl border border-border bg-card p-4">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Admin settlement</p>
+      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Market resolution</p>
       <div className="flex gap-2">
         <button
           type="button"

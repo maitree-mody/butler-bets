@@ -10,7 +10,7 @@ import Badge from '@/app/components/ui/Badge'
 import TradePanel from './TradePanel'
 import ResolvePanel from './ResolvePanel'
 import ShareButton from './ShareButton'
-import CollapsibleSummary from './CollapsibleSummary'
+import StickyQuestionHeader from './StickyQuestionHeader'
 import PriceChart, { type PricePoint } from './PriceChart'
 
 type MarketPosition = {
@@ -91,7 +91,6 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
   const isResolved = market.status === 'resolved'
   const yesProb = priceYes(Number(market.q_yes), Number(market.q_no), Number(market.b))
   const yesPct = Math.round(yesProb * 100)
-  const noPct  = 100 - yesPct
   const volume  = Number(market.q_yes) + Number(market.q_no)
   const lastTrade = tradePoints.at(-1)
   const lastTradeLabel = lastTrade
@@ -99,10 +98,6 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
     : null
   const closeDate = new Date(market.closes_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
   const category = inferCategory(market.question)
-
-  // Price-change indicator: last vs. second-to-last point already in the chart array.
-  const priceBefore = tradePoints.length >= 2 ? tradePoints.at(-2)!.price : null
-  const priceChangePts = priceBefore !== null ? yesProb - priceBefore : null
 
   // Stats derived from the augmented trades array — no extra queries needed.
   const totalVolume = tradeDetails.reduce((sum, t) => sum + Math.abs(Number(t.cost)), 0)
@@ -132,7 +127,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
     <>
       <Nav email={user.email ?? ''} />
       <main className="min-h-screen bg-background">
-        <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mx-auto max-w-7xl px-6 py-5">
 
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -141,142 +136,99 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
             <span className={category.color}>{category.label}</span>
           </nav>
 
-          {/* Header card */}
-          <div className="mt-3 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-7">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                  isOpen
-                    ? 'bg-success/10 text-success'
-                    : 'bg-muted text-muted-foreground'
-                }`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${isOpen ? 'bg-success' : 'bg-muted-foreground'}`} />
-                  {market.status}
-                </span>
-                <span className="text-xs text-muted-foreground">·</span>
-                <span className="text-xs text-muted-foreground">Expires {closeDate}</span>
-                {lastTradeLabel && (
-                  <>
-                    <span className="text-xs text-muted-foreground">·</span>
+          {/* Header masthead */}
+          <div className="mt-2.5 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm sm:px-5 sm:py-3.5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
+                    isOpen
+                      ? 'bg-success/10 text-success'
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${isOpen ? 'bg-success' : 'bg-muted-foreground'}`} />
+                    {market.status}
+                  </span>
+                  <Badge tone="columbia">{category.label}</Badge>
+                  <span className="text-xs text-muted-foreground">Expires {closeDate}</span>
+                  {lastTradeLabel && (
                     <span className="text-xs text-muted-foreground">
-                      {tradePoints.length} trade{tradePoints.length !== 1 ? 's' : ''} · last {lastTradeLabel}
+                      · {tradePoints.length} trade{tradePoints.length !== 1 ? 's' : ''} · last {lastTradeLabel}
                     </span>
-                  </>
+                  )}
+                </div>
+                <StickyQuestionHeader question={market.question} yesPct={yesPct} />
+                {market.description && (
+                  <p className="mt-1 line-clamp-1 max-w-3xl text-xs text-muted-foreground">{market.description}</p>
                 )}
               </div>
               <ShareButton title={market.question} />
             </div>
-            <h1 className="font-display text-2xl font-bold leading-snug tracking-tight text-columbia-deep sm:text-3xl">
-              {market.question}
-            </h1>
-            {market.description && (
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{market.description}</p>
-            )}
-            <div className="mt-3 flex items-center gap-1.5">
-              <Badge tone="columbia">{category.label}</Badge>
-            </div>
           </div>
 
           {/* Main grid */}
-          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-8">
+          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-6">
 
             {/* Left */}
-            <div className="flex flex-col gap-6">
-
-              {/* Market summary (collapsible) */}
-              <CollapsibleSummary title="Market summary">
-                <div className="grid grid-cols-2 gap-4">
-                  <a href={isResolved ? '#market-result' : '#trade-ticket'}>
-                    <div className="rounded-xl border border-columbia/20 bg-columbia-soft/60 px-4 py-4 transition-all hover:border-columbia hover:shadow-md">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Yes</p>
-                      <p className="font-display mt-1 text-4xl font-bold leading-none text-columbia">{yesPct}¢</p>
-                      {priceChangePts !== null && (
-                        <p className={`mt-1 text-xs font-semibold ${priceChangePts >= 0 ? 'text-success' : 'text-danger'}`}>
-                          {priceChangePts >= 0 ? '▲' : '▼'} {Math.abs(Math.round(priceChangePts * 100))}¢
-                        </p>
-                      )}
-                      <p className="mt-2 text-xs font-semibold text-success">
-                        {yesPct > 50 ? `▲ ${yesPct - 50}pts above even` : yesPct < 50 ? `▼ ${50 - yesPct}pts below even` : '— at 50/50'}
-                      </p>
-                    </div>
-                  </a>
-                  <a href={isResolved ? '#market-result' : '#trade-ticket'}>
-                    <div className="rounded-xl border border-danger/20 bg-danger/5 px-4 py-4 transition-all hover:border-danger hover:shadow-md">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">No</p>
-                      <p className="font-display mt-1 text-4xl font-bold leading-none text-danger">{noPct}¢</p>
-                      {priceChangePts !== null && (
-                        <p className={`mt-1 text-xs font-semibold ${priceChangePts <= 0 ? 'text-success' : 'text-danger'}`}>
-                          {priceChangePts <= 0 ? '▲' : '▼'} {Math.abs(Math.round(priceChangePts * 100))}¢
-                        </p>
-                      )}
-                      <p className="mt-2 text-xs font-semibold text-muted-foreground">
-                        {isResolved ? 'View result ↓' : 'Click to trade ↓'}
-                      </p>
-                    </div>
-                  </a>
-                </div>
-
-                {/* Progress bar */}
-                <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-danger/10">
-                  <div className="h-full rounded-full bg-columbia transition-all" style={{ width: `${yesPct}%` }} />
-                </div>
-                <div className="mt-2 flex justify-between text-xs font-semibold">
-                  <span className="text-columbia">YES {yesPct}%</span>
-                  <span className="text-danger">NO {noPct}%</span>
-                </div>
-
-                {/* Stats */}
-                <div className="mt-5 grid grid-cols-3 gap-4 border-t border-border pt-4 sm:grid-cols-6">
-                  <div><p className="text-xs text-muted-foreground">Total shares</p><p className="font-semibold text-foreground">{volume.toLocaleString()}</p></div>
-                  <div><p className="text-xs text-muted-foreground">Liquidity (b)</p><p className="font-semibold text-foreground">{Number(market.b).toLocaleString()}</p></div>
-                  <div><p className="text-xs text-muted-foreground">Trades</p><p className="font-semibold text-foreground">{tradePoints.length}</p></div>
-                  <div><p className="text-xs text-muted-foreground">Total volume</p><p className="font-semibold text-foreground">{totalVolume.toFixed(0)} ♛</p></div>
-                  <div><p className="text-xs text-muted-foreground">Open interest</p><p className="font-semibold text-foreground">{openInterest}</p></div>
-                  <div><p className="text-xs text-muted-foreground">24h volume</p><p className="font-semibold text-foreground">{volume24h.toFixed(0)} ♛</p></div>
-                </div>
-              </CollapsibleSummary>
+            <div className="flex flex-col gap-4">
 
               {/* Chart */}
               <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
                 <PriceChart points={pricePoints} />
               </div>
 
+              {/* Market stats — compact strip; YES/NO price already lives in the chart + trade ticket */}
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-2xl border border-border bg-card px-4 py-2.5 shadow-sm">
+                {[
+                  { label: 'Total shares', value: volume.toLocaleString() },
+                  { label: 'Trades', value: tradePoints.length.toLocaleString() },
+                  { label: 'Volume', value: `${totalVolume.toFixed(0)} ♛` },
+                  { label: 'Open interest', value: openInterest.toLocaleString() },
+                  { label: '24h volume', value: `${volume24h.toFixed(0)} ♛` },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex items-baseline gap-1.5 text-xs">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span className="font-semibold text-foreground">{value}</span>
+                  </div>
+                ))}
+              </div>
+
               {/* Top traders + Recent activity */}
-              <div className="grid gap-6 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-                  <div className="border-b border-border px-5 py-4">
-                    <h2 className="text-sm font-semibold text-foreground">Top traders in this market</h2>
+                  <div className="border-b border-border px-4 py-2.5">
+                    <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Top traders</h2>
                   </div>
                   {topTraders.length > 0 ? (
                     <ol>
                       {topTraders.map((trader, i) => (
-                        <li key={`${trader.displayName}-${i}`} className="flex items-center justify-between border-b border-border px-5 py-3.5 last:border-0">
-                          <div className="flex items-center gap-3">
-                            <span className="grid h-6 w-6 place-items-center rounded-full bg-columbia-soft text-xs font-bold text-columbia">
+                        <li key={`${trader.displayName}-${i}`} className="flex items-center justify-between border-b border-border px-4 py-2 text-sm last:border-0">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-columbia-soft text-[11px] font-bold text-columbia">
                               {i + 1}
                             </span>
-                            <span className="text-sm font-semibold text-foreground">{trader.displayName}</span>
+                            <span className="truncate font-semibold text-foreground">{trader.displayName}</span>
                           </div>
-                          <span className="text-sm text-muted-foreground">{trader.totalShares.toLocaleString()} shares</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">{trader.totalShares.toLocaleString()} shares</span>
                         </li>
                       ))}
                     </ol>
                   ) : (
-                    <p className="px-5 py-8 text-center text-sm text-muted-foreground">No positions yet — be the first to trade.</p>
+                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No positions yet — be the first to trade.</p>
                   )}
                 </div>
 
                 <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-                  <div className="border-b border-border px-5 py-4">
-                    <h2 className="text-sm font-semibold text-foreground">Recent activity</h2>
+                  <div className="border-b border-border px-4 py-2.5">
+                    <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent activity</h2>
                   </div>
                   {recentActivity.length > 0 ? (
                     <ul>
                       {recentActivity.map((a, i) => (
-                        <li key={i} className="flex items-center justify-between gap-2 border-b border-border px-5 py-3 last:border-0">
+                        <li key={i} className="flex items-center justify-between gap-2 border-b border-border px-4 py-2 text-sm last:border-0">
                           <div className="flex min-w-0 items-center gap-2">
                             <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${a.side === 'yes' ? 'bg-columbia' : 'bg-danger'}`} />
-                            <span className="min-w-0 truncate text-sm text-foreground">
+                            <span className="min-w-0 truncate text-foreground">
                               {a.type === 'sell' ? 'Sold' : 'Bought'} {a.shares} <span className="font-semibold uppercase">{a.side}</span>
                             </span>
                           </div>
@@ -285,18 +237,18 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                       ))}
                     </ul>
                   ) : (
-                    <p className="px-5 py-8 text-center text-sm text-muted-foreground">No trades yet — be the first.</p>
+                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No trades yet — be the first.</p>
                   )}
                 </div>
               </div>
             </div>
 
             {/* Right: trade panel */}
-            <aside className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
+            <aside className="flex flex-col gap-3 lg:sticky lg:top-20 lg:self-start">
               {isOpen && isCreator ? (
-                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your market</p>
-                  <p className="mt-2 text-sm text-muted-foreground">You created this market and can resolve it, but cannot trade on it.</p>
+                  <p className="mt-1.5 text-sm text-muted-foreground">You created this market and can resolve it, but cannot trade on it.</p>
                 </div>
               ) : isOpen ? (
                 <TradePanel
@@ -309,20 +261,20 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                   userNoShares={userNoShares}
                 />
               ) : (
-                <div id="market-result" className="scroll-mt-20 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <div id="market-result" className="scroll-mt-20 rounded-2xl border border-border bg-card p-4 shadow-sm">
                   {isResolved ? (
                     <>
-                      <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Final result</p>
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Final result</p>
                       <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${
                         market.resolution === 'yes'
-                          ? 'border-columbia/25 bg-columbia-soft text-columbia'
-                          : 'border-danger/25 bg-danger/5 text-danger'
+                          ? 'border-success/25 bg-positive-soft text-success'
+                          : 'border-danger/25 bg-danger-soft text-danger'
                       }`}>
-                        <span className={`h-2 w-2 shrink-0 rounded-full ${market.resolution === 'yes' ? 'bg-columbia' : 'bg-danger'}`} />
+                        <span className={`h-2 w-2 shrink-0 rounded-full ${market.resolution === 'yes' ? 'bg-success' : 'bg-danger'}`} />
                         {market.resolution?.toUpperCase()} won
                       </div>
                       {market.resolved_at && (
-                        <p className="mt-3 text-xs text-muted-foreground">
+                        <p className="mt-2 text-xs text-muted-foreground">
                           Resolved {new Date(market.resolved_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                       )}
