@@ -42,5 +42,13 @@ export async function createMarket(
 
   if (error) return `Failed to create market: ${error.message}`
 
+  await supabase.from('notifications').insert({
+    user_id: user.id,
+    type: 'market_created',
+    title: 'Market live',
+    body: `Your market '${question}' is live.`,
+    market_id: data.id,
+  })
+
   redirect(`/markets/${data.id}`)
 }
