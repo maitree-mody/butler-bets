@@ -6,8 +6,14 @@ import Alert from '@/app/components/ui/Alert'
 
 const inputStyles = 'min-h-11 w-full rounded-lg border border-border bg-white px-3 text-sm text-foreground placeholder:text-muted-foreground/60 transition-colors focus:border-columbia focus:outline-none focus:ring-2 focus:ring-columbia/15'
 
+const DESCRIPTION_EMPTY_MESSAGE = 'Describe exactly what counts as YES.'
+
 export function CreateMarketForm() {
   const [error, action, isPending] = useActionState(createMarket, null)
+
+  function handleDescriptionChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    e.target.setCustomValidity(e.target.value.trim() === '' ? DESCRIPTION_EMPTY_MESSAGE : '')
+  }
 
   return (
     <form action={action} className="mt-6 space-y-5">
@@ -32,13 +38,18 @@ export function CreateMarketForm() {
 
       <div>
         <div className="mb-1.5 flex items-baseline justify-between gap-4">
-          <label htmlFor="description" className="text-sm font-semibold text-foreground">Resolution criteria</label>
-          <span className="text-xs text-muted-foreground">Optional</span>
+          <label htmlFor="description" className="text-sm font-semibold text-foreground">How will this resolve?</label>
+          <span className="text-xs font-semibold text-danger">Required</span>
         </div>
+        <p className="mb-1.5 text-xs text-muted-foreground">
+          Describe exactly what counts as YES — so there&apos;s no argument later.
+        </p>
         <textarea
           id="description"
           name="description"
           rows={4}
+          required
+          onChange={handleDescriptionChange}
           placeholder="Specify the source of truth and what counts as YES or NO."
           className={`${inputStyles} resize-y py-2.5 leading-6`}
         />

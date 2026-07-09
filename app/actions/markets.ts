@@ -14,10 +14,12 @@ export async function createMarket(
   if (!user) return 'You must be signed in to create a market.'
 
   const question = (formData.get('question') as string ?? '').trim()
-  const description = (formData.get('description') as string ?? '').trim() || null
+  const description = (formData.get('description') as string ?? '').trim()
   const closesAtRaw = (formData.get('closes_at') as string ?? '').trim()
   if (!question) return 'Question is required.'
   if (question.length > 200) return 'Question must be 200 characters or fewer.'
+
+  if (!description) return 'Describe how this market will resolve.'
 
   if (!closesAtRaw) return 'Closing date is required.'
   const closesAt = new Date(closesAtRaw)
