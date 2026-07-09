@@ -288,7 +288,7 @@ export default function HowItWorksAnimated({
             </h2>
             <p className="mb-7 max-w-[400px] text-[15.5px] leading-relaxed text-muted-foreground">
               ButlerBets turns campus questions into play-money markets. Read the room, back your
-              call, and cash in when you&apos;re right — all with Crowns, no real money.
+              call, and cash in when you&apos;re right, all with Crowns, no real money.
             </p>
 
             <nav className="flex flex-col gap-1">

@@ -31,6 +31,17 @@ export default function OnboardingForm() {
         </p>
       </div>
 
+      <label htmlFor="age_confirmed" className="flex items-start gap-2 text-sm text-foreground">
+        <input
+          id="age_confirmed"
+          name="age_confirmed"
+          type="checkbox"
+          required
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-border text-columbia focus:ring-columbia/40"
+        />
+        I confirm I am 18 or older
+      </label>
+
       <button
         type="submit"
         disabled={isPending}
