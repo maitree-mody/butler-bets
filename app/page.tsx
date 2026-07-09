@@ -388,7 +388,7 @@ function AlmaMater() {
         className="mx-auto h-24 w-auto opacity-90"
         loading="lazy"
       />
-      <h3 className="mt-3 text-center font-display text-lg font-bold text-columbia-deep">Built at Butler. Tested at 3am.</h3>
+      <h3 className="mt-3 text-center font-display text-lg font-bold text-columbia-deep">Built at Butler. Tested at Amity.</h3>
       <p className="mt-2 text-center text-xs leading-relaxed text-muted-foreground">
         We believe in the pursuit of truth, the power of ideas, and the Columbia spirit of inquiry.
         butler bets empowers students to turn insight into impact.
