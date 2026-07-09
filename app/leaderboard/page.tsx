@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { rankUsers } from '@/lib/ranking'
+import { formatCrownsSigned } from '@/lib/format-crowns'
 import Nav from '@/app/components/Nav'
 import Card from '@/app/components/ui/Card'
 import Badge from '@/app/components/ui/Badge'
@@ -80,7 +81,7 @@ export default async function LeaderboardPage() {
                   <div className="border-l border-border pl-6">
                     <p className="eyebrow mb-1">Your profit</p>
                     <p className={`text-2xl font-bold ${myRow.profit >= 0 ? 'text-success' : 'text-danger'}`}>
-                      {myRow.profit >= 0 ? '+' : ''}{myRow.profit.toFixed(2)}
+                      {formatCrownsSigned(myRow.profit)}
                     </p>
                   </div>
                 </div>
@@ -88,7 +89,7 @@ export default async function LeaderboardPage() {
             ) : (
               <Card padding="md" className="shrink-0">
                 <p className="text-sm font-semibold text-foreground">Not ranked yet</p>
-                <p className="mt-1 text-xs text-muted-foreground">Make your first trade to join the leaderboard.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Make your first trade and crack the leaderboard.</p>
               </Card>
             ))}
           </div>
@@ -106,7 +107,7 @@ export default async function LeaderboardPage() {
             </Alert>
           ) : rankedUsers.length === 0 ? (
             <p className="rounded-xl border border-border py-12 text-center text-sm text-muted-foreground">
-              No traders yet.
+              No traders yet. Someone&apos;s got to be #1.
             </p>
           ) : (
             <Card padding="none" className="overflow-hidden">
@@ -156,7 +157,7 @@ export default async function LeaderboardPage() {
                         <td className={`px-4 py-3.5 text-right text-sm font-bold ${
                           entry.profit >= 0 ? 'text-success' : 'text-danger'
                         }`}>
-                          {entry.profit >= 0 ? '+' : ''}{entry.profit.toFixed(2)}
+                          {formatCrownsSigned(entry.profit)}
                         </td>
                       </tr>
                     )
@@ -176,7 +177,7 @@ export default async function LeaderboardPage() {
                       <td className={`px-4 py-3 text-right text-sm font-bold ${
                         myRow.profit >= 0 ? 'text-success' : 'text-danger'
                       }`}>
-                        {myRow.profit >= 0 ? '+' : ''}{myRow.profit.toFixed(2)}
+                        {formatCrownsSigned(myRow.profit)}
                       </td>
                     </tr>
                   </tfoot>

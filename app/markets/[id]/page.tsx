@@ -5,6 +5,7 @@ import { priceYes } from '@/lib/lmsr'
 import { displayNameFromEmail } from '@/lib/display-name'
 import { inferCategory } from '@/lib/category'
 import { isoTimestampHoursAgo } from '@/lib/time'
+import { formatCrowns } from '@/lib/format-crowns'
 import Nav from '@/app/components/Nav'
 import Badge from '@/app/components/ui/Badge'
 import TradePanel from './TradePanel'
@@ -54,7 +55,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
       <>
         <Nav email={user.email ?? ''} />
         <main className="mx-auto max-w-7xl px-6 py-20 text-center">
-          <p className="font-display text-3xl font-semibold text-columbia-deep">Market not found.</p>
+          <p className="font-display text-3xl font-semibold text-columbia-deep">This market doesn&apos;t exist. Double-check the link?</p>
           <Link href="/" className="mt-5 inline-block text-sm font-semibold text-columbia underline underline-offset-4">
             ← Back to markets
           </Link>
@@ -182,9 +183,9 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                 {[
                   { label: 'Total shares', value: volume.toLocaleString() },
                   { label: 'Trades', value: tradePoints.length.toLocaleString() },
-                  { label: 'Volume', value: `${totalVolume.toFixed(0)} ♛` },
+                  { label: 'Volume', value: `${formatCrowns(totalVolume)} ♛` },
                   { label: 'Open interest', value: openInterest.toLocaleString() },
-                  { label: '24h volume', value: `${volume24h.toFixed(0)} ♛` },
+                  { label: '24h volume', value: `${formatCrowns(volume24h)} ♛` },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex items-baseline gap-1.5 text-xs">
                     <span className="text-muted-foreground">{label}</span>
@@ -214,7 +215,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                       ))}
                     </ol>
                   ) : (
-                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No positions yet — be the first to trade.</p>
+                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No positions yet — plant your flag first.</p>
                   )}
                 </div>
 
@@ -237,7 +238,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                       ))}
                     </ul>
                   ) : (
-                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No trades yet — be the first.</p>
+                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No trades yet — be the icebreaker.</p>
                   )}
                 </div>
               </div>

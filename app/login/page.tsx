@@ -22,8 +22,8 @@ async function getSocialProof() {
 
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_domain:
-    'Only Columbia and Barnard emails are allowed. Please sign in with your @columbia.edu or @barnard.edu email.',
-  auth_failed: 'Sign-in failed. Please try again.',
+    "This one's Columbia & Barnard only — sign in with your @columbia.edu or @barnard.edu email.",
+  auth_failed: "Sign-in didn't go through. Give it another shot.",
 }
 
 const TRUST_ITEMS = [
@@ -38,7 +38,7 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string }>
 }) {
   const { error } = await searchParams
-  const errorMessage = error ? (ERROR_MESSAGES[error] ?? 'Something went wrong. Please try again.') : null
+  const errorMessage = error ? (ERROR_MESSAGES[error] ?? 'Something broke on our end. Try again?') : null
   const { traders, openMarkets } = await getSocialProof()
 
   return (
@@ -81,8 +81,8 @@ export default async function LoginPage({
               <em className="italic text-columbia" style={{ fontFamily: 'var(--font-display)' }}>{HERO_LINE_2}</em>
             </h1>
             <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">
-              Play-money prediction markets on campus events.<br />
-              Sign in with your Columbia or Barnard account.
+              Play-money markets for everything happening on campus.<br />
+              Sign in with your Columbia or Barnard account to get in on it.
             </p>
 
             {errorMessage && (

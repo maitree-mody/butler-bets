@@ -10,31 +10,13 @@ import { isoTimestampHoursAgo } from '@/lib/time'
 import { displayNameFromEmail } from '@/lib/display-name'
 import { rankUsers } from '@/lib/ranking'
 import { HERO_LINE_1, HERO_LINE_2 } from '@/lib/copy'
+import { formatCrowns } from '@/lib/format-crowns'
 import Nav from '@/app/components/Nav'
-import MarketCard, { Sparkline } from '@/app/components/MarketCard'
-
-/* ── Types ──────────────────────────────────────────────────── */
-type MarketView = 'all' | 'open' | 'resolved' | 'active'
-
-const marketViews: Array<{ value: MarketView; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'open', label: 'Open' },
-  { value: 'resolved', label: 'Resolved' },
-  { value: 'active', label: 'Active · 24h' },
-]
+import { Sparkline } from '@/app/components/MarketCard'
+import MarketsExplorer from '@/app/components/MarketsExplorer'
 
 /* ── Page (server component) ─────────────────────────────── */
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ view?: string | string[] }>
-}) {
-  const { view } = (await searchParams) ?? {}
-  const requestedView = Array.isArray(view) ? view[0] : view
-  const currentView: MarketView = marketViews.some((o) => o.value === requestedView)
-    ? (requestedView as MarketView)
-    : 'all'
-
+export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -47,12 +29,16 @@ export default async function HomePage({
   if (!userProfile?.display_name) redirect('/onboarding')
 
   const oneDayAgo = isoTimestampHoursAgo(24)
-  const [marketsResult, recentTradesResult, positionsResult, usersCountResult, liveActivityResult] = await Promise.all([
+  const fortyEightHoursAgo = isoTimestampHoursAgo(48)
+  const [marketsResult, recentTradesResult, trending48hResult, positionsResult, usersCountResult, liveActivityResult] = await Promise.all([
     supabase
       .from('markets')
-      .select('id, question, closes_at, status, b, q_yes, q_no')
+      .select('id, question, closes_at, created_at, resolved_at, status, b, q_yes, q_no')
       .order('created_at', { ascending: false }),
     supabase.from('trades').select('market_id').gte('created_at', oneDayAgo),
+    // Wider 48h window feeds the "Trending" tab's sort order only — the card
+    // badge below still shows the 24h count via recentTradeCounts.
+    supabase.from('trades').select('market_id').gte('created_at', fortyEightHoursAgo),
     supabase.from('positions').select('market_id').eq('user_id', user.id),
     supabase.from('users').select('*', { count: 'exact', head: true }),
     // Mirrors ActivityTicker's exact select shape — a one-shot server-rendered
@@ -65,30 +51,16 @@ export default async function HomePage({
   ])
 
   const { data: markets, error } = marketsResult
-  const recentTradeCounts = new Map<string, number>()
+  const recentTradeCounts: Record<string, number> = {}
   for (const trade of recentTradesResult.data ?? []) {
-    recentTradeCounts.set(trade.market_id, (recentTradeCounts.get(trade.market_id) ?? 0) + 1)
+    recentTradeCounts[trade.market_id] = (recentTradeCounts[trade.market_id] ?? 0) + 1
+  }
+  const tradeCounts48h: Record<string, number> = {}
+  for (const trade of trending48hResult.data ?? []) {
+    tradeCounts48h[trade.market_id] = (tradeCounts48h[trade.market_id] ?? 0) + 1
   }
 
   const openMarkets = markets?.filter((m) => m.status === 'open') ?? []
-  const marketCounts: Record<MarketView, number> = {
-    all: markets?.length ?? 0,
-    open: openMarkets.length,
-    resolved: markets?.filter((m) => m.status === 'resolved').length ?? 0,
-    active: markets?.filter((m) => recentTradeCounts.has(m.id)).length ?? 0,
-  }
-  const filteredMarkets = (markets ?? []).filter((m) => {
-    if (currentView === 'open') return m.status === 'open'
-    if (currentView === 'resolved') return m.status === 'resolved'
-    if (currentView === 'active') return recentTradeCounts.has(m.id)
-    return true
-  })
-  if (currentView === 'all') {
-    filteredMarkets.sort((a, b) => {
-      const p = (s: string) => s === 'open' ? 0 : s === 'resolved' ? 1 : 2
-      return p(a.status) - p(b.status)
-    })
-  }
 
   const crowns = Number(userProfile?.crowns ?? 0)
   const marketsTraded = positionsResult.data?.length ?? 0
@@ -167,7 +139,8 @@ export default async function HomePage({
               <em className="italic text-columbia" style={{ fontFamily: 'var(--font-display)' }}>{HERO_LINE_2}</em>
             </h1>
             <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
-              Campus-powered prediction markets for Columbia students. Built on research, driven by insight.
+              Play-money prediction markets for everything Columbia can&apos;t stop arguing about —
+              will it snow before Orgo Night? Put your Crowns where your mouth is.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -180,7 +153,7 @@ export default async function HomePage({
                 href="/markets/new"
                 className="pressable inline-flex items-center rounded-md border border-columbia px-5 py-3 text-sm font-medium text-columbia hover:bg-columbia-soft"
               >
-                Get Started
+                Start Trading
               </Link>
             </div>
             {totalStudents > 0 && (
@@ -197,7 +170,7 @@ export default async function HomePage({
                   ))}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Join <span className="font-semibold text-foreground">{totalStudents.toLocaleString()}+</span> students trading their forecasts
+                  Join <span className="font-semibold text-foreground">{totalStudents.toLocaleString()}+</span> students trading hot takes
                 </p>
               </div>
             )}
@@ -216,68 +189,19 @@ export default async function HomePage({
 
       {/* ── FEATURED MARKETS ─────────────────────────────── */}
       <section id="markets" className="mx-auto max-w-7xl px-6 pb-16 pt-16">
-        {/* Header */}
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 className="font-display text-3xl font-bold text-columbia-deep">Live Markets</h2>
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Filter pills */}
-            <div className="flex items-center gap-1.5">
-              {marketViews.map((option) => {
-                const selected = option.value === currentView
-                return (
-                  <Link
-                    key={option.value}
-                    href={option.value === 'all' ? '/' : `/?view=${option.value}`}
-                    aria-current={selected ? 'page' : undefined}
-                    className={`pressable rounded-full px-3 py-1 text-xs font-semibold transition-colors duration-150 ease-out ${
-                      selected
-                        ? 'bg-columbia text-primary-foreground shadow-sm'
-                        : 'border border-border bg-card text-muted-foreground hover:border-columbia hover:text-columbia'
-                    }`}
-                  >
-                    {option.label}
-                    <span className="ml-1 opacity-60">{marketCounts[option.value]}</span>
-                  </Link>
-                )
-              })}
-            </div>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1 text-sm text-columbia hover:text-columbia-deep"
-            >
-              View all markets <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
+        <h2 className="font-display text-3xl font-bold text-columbia-deep">Live Markets</h2>
 
         {error ? (
           <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive" role="alert">
             Failed to load markets: {error.message}
           </div>
-        ) : filteredMarkets.length > 0 ? (
-          <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {filteredMarkets.map((market) => (
-              <li key={market.id}>
-                <MarketCard market={market} recentTrades={recentTradeCounts.get(market.id) ?? 0} />
-              </li>
-            ))}
-          </ul>
         ) : (
-          <div className="mt-8 rounded-2xl border border-border bg-card py-20 text-center">
-            <p className="font-display text-2xl font-semibold text-columbia-deep">
-              No {currentView === 'all' ? '' : `${currentView} `}markets yet.
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {currentView === 'active'
-                ? 'Activity appears after a trade.'
-                : 'Try another filter or open a new market.'}
-            </p>
-            {currentView !== 'all' && (
-              <Link href="/" className="mt-5 inline-block text-sm font-semibold text-columbia underline underline-offset-4">
-                View all markets →
-              </Link>
-            )}
-          </div>
+          <MarketsExplorer
+            openMarkets={openMarkets}
+            resolvedMarkets={markets?.filter((m) => m.status === 'resolved') ?? []}
+            recentTradeCounts={recentTradeCounts}
+            tradeCounts48h={tradeCounts48h}
+          />
         )}
       </section>
 
@@ -320,8 +244,8 @@ function DashboardMock({
   const buyingPower = Math.floor(crowns * 0.28)
 
   const stats = [
-    { l: 'Portfolio Value', v: `♛${crowns.toLocaleString()}` },
-    { l: 'Buying Power',    v: `♛${buyingPower.toLocaleString()}` },
+    { l: 'Portfolio Value', v: `♛${formatCrowns(crowns)}` },
+    { l: 'Buying Power',    v: `♛${formatCrowns(buyingPower)}` },
     { l: 'Markets Traded',  v: String(marketsTraded) },
     { l: 'Rank',            v: rankLabel },
   ]
@@ -338,14 +262,12 @@ function DashboardMock({
     <div className="flex overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-columbia/10">
       {/* Blue sidebar */}
       <aside className="flex w-14 flex-col items-center gap-5 bg-columbia py-5 text-primary-foreground/80">
-        {sidebarLinks.map(({ Icon, label, href }, i) => (
+        {sidebarLinks.map(({ Icon, label, href }) => (
           <Link
             key={label}
             href={href}
             aria-label={label}
-            className={`grid h-9 w-9 place-items-center rounded-md ${
-              i === 0 ? 'bg-white/15 text-white' : 'hover:bg-white/10'
-            }`}
+            className="grid h-9 w-9 place-items-center rounded-md hover:bg-white/10"
           >
             <Icon className="h-4 w-4" strokeWidth={1.8} />
           </Link>
@@ -424,9 +346,9 @@ function PillBox({ label, value, tone }: { label: string; value: string; tone: '
 
 function HowItWorks() {
   const steps = [
-    { Icon: Search,     t: 'Discover markets',  d: 'Explore questions across campus, finance, politics, and sports.' },
-    { Icon: TrendingUp, t: 'Trade forecasts',   d: 'Buy Yes or No shares between ♛0.01 and ♛0.99.' },
-    { Icon: Trophy,     t: 'Track outcomes',    d: 'Winning shares pay ♛1.00. Climb the leaderboard.' },
+    { Icon: Search,     t: 'Discover markets',  d: "From housing lottery odds to dining hall drama — if Columbia's talking about it, there's probably a market." },
+    { Icon: TrendingUp, t: 'Trade forecasts',   d: 'Buy YES or NO with Crowns, not meal swipes — between ♛0.01 and ♛0.99.' },
+    { Icon: Trophy,     t: 'Track outcomes',    d: "Called it right? Winning shares pay ♛1.00. Called it wrong? Welcome to the leaderboard's basement." },
   ]
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -466,9 +388,10 @@ function AlmaMater() {
         className="mx-auto h-24 w-auto opacity-90"
         loading="lazy"
       />
-      <h3 className="mt-3 text-center font-display text-lg font-bold text-columbia-deep">Built at Butler. Tested at Amity.</h3>
+      <h3 className="mt-3 text-center font-display text-lg font-bold text-columbia-deep">Built at Butler. Tested at 3am.</h3>
       <p className="mt-2 text-center text-xs leading-relaxed text-muted-foreground">
         We believe in the pursuit of truth, the power of ideas, and the Columbia spirit of inquiry.
+        butler bets empowers students to turn insight into impact.
       </p>
       <div className="mt-4 grid grid-cols-3 gap-3">
         {values.map((v) => (
@@ -491,7 +414,7 @@ function LiveActivity({
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
       <h2 className="mb-4 font-display text-lg font-bold text-columbia-deep">Live activity</h2>
       {items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No activity yet.</p>
+        <p className="text-xs text-muted-foreground">No activity yet. Someone go make history (or at least a trade).</p>
       ) : (
         <ul className="space-y-3">
           {items.map((item) => {
@@ -522,10 +445,10 @@ function ReadyCTA() {
           <Crown className="h-6 w-6 shrink-0 text-columbia" strokeWidth={1.6} />
           <div>
             <h3 className="font-display text-lg font-bold text-columbia-deep">
-              Ready to shape what&apos;s next?
+              Ready to put your Crowns where your mouth is?
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Join thousands of Columbia students turning information into insight.
+              Join your fellow Lions turning hot takes into bragging rights — no real money, maximum campus chaos.
             </p>
           </div>
         </div>
@@ -534,7 +457,7 @@ function ReadyCTA() {
             href="/markets/new"
             className="pressable rounded-md bg-columbia px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-columbia-deep"
           >
-            Get Started
+            Start Trading
           </Link>
           <a
             href="#markets"
@@ -556,7 +479,7 @@ function Footer() {
           <Crown className="h-5 w-5 text-columbia-deep" strokeWidth={1.5} />
           <div>
             <div className="font-display font-bold text-columbia-deep">butler bets</div>
-            <div className="text-xs text-muted-foreground">Campus prediction markets, powered by Columbia.</div>
+            <div className="text-xs text-muted-foreground">Campus prediction markets. Zero real money, all the drama.</div>
           </div>
         </div>
         <div className="flex items-center gap-6 text-muted-foreground">

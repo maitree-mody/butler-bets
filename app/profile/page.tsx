@@ -8,6 +8,7 @@ import IconStat from '@/app/components/ui/IconStat'
 import { priceYes } from '@/lib/lmsr'
 import { inferCategory } from '@/lib/category'
 import { displayNameFromEmail } from '@/lib/display-name'
+import { formatCrowns, formatCrownsSigned } from '@/lib/format-crowns'
 import EditDisplayNameToggle from './EditDisplayNameToggle'
 
 const STARTING_CROWNS = 1000
@@ -88,11 +89,11 @@ export default async function ProfilePage() {
     : null
 
   const stats = [
-    { icon: Wallet, label: 'Balance', value: crowns.toFixed(2), sub: 'crowns' },
+    { icon: Wallet, label: 'Balance', value: formatCrowns(crowns), sub: 'crowns' },
     {
       icon: TrendingUp,
       label: 'Total profit',
-      value: `${profit >= 0 ? '+' : ''}${profit.toFixed(2)}`,
+      value: formatCrownsSigned(profit),
       sub: 'vs. 1,000 start',
       tone: profit >= 0 ? 'success' as const : 'danger' as const,
     },
@@ -152,7 +153,7 @@ export default async function ProfilePage() {
 
               {openPositions.length === 0 ? (
                 <Card padding="lg" className="text-center">
-                  <p className="text-sm text-muted-foreground">No open positions yet.</p>
+                  <p className="text-sm text-muted-foreground">No open positions yet — get off the Sundial and into a market.</p>
                 </Card>
               ) : (
                 <Card padding="none" className="overflow-hidden">
@@ -204,7 +205,7 @@ export default async function ProfilePage() {
                                 {Number(pos.no_shares).toFixed(0)}
                               </td>
                               <td className="py-3.5 pr-5 text-right text-sm font-semibold text-foreground">
-                                {value.toFixed(2)} ♛
+                                {formatCrowns(value)} ♛
                               </td>
                             </tr>
                           )
@@ -235,7 +236,7 @@ export default async function ProfilePage() {
               {recentTrades.length === 0 ? (
                 <Card padding="lg" className="text-center">
                   <p className="text-sm text-muted-foreground">
-                    No trades yet — head to a market to get started.
+                    No trades yet — Butler ain&apos;t gonna bet on itself.
                   </p>
                 </Card>
               ) : (
@@ -301,10 +302,10 @@ export default async function ProfilePage() {
                                 {shares.toFixed(0)}
                               </td>
                               <td className="py-3.5 pr-4 text-right text-sm text-muted-foreground">
-                                {pricePerShare.toFixed(2)}
+                                {formatCrowns(pricePerShare)}
                               </td>
                               <td className="py-3.5 pr-4 text-right text-sm text-foreground">
-                                {cost.toFixed(2)}
+                                {formatCrowns(cost)}
                               </td>
                               <td className="py-3.5 pr-5 text-right text-xs text-muted-foreground">
                                 {new Date(trade.created_at).toLocaleString('en-GB', {
@@ -333,7 +334,7 @@ export default async function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-muted-foreground">Net profit</dt>
                   <dd className={`text-sm font-bold ${profit >= 0 ? 'text-success' : 'text-danger'}`}>
-                    {profit >= 0 ? '+' : ''}{profit.toFixed(2)} ♛
+                    {formatCrownsSigned(profit)} ♛
                   </dd>
                 </div>
                 <div className="flex items-center justify-between">
@@ -344,11 +345,11 @@ export default async function ProfilePage() {
                 </div>
                 <div className="flex items-center justify-between border-t border-border pt-3">
                   <dt className="text-sm text-muted-foreground">Starting balance</dt>
-                  <dd className="text-sm font-semibold text-foreground">{STARTING_CROWNS.toLocaleString()} ♛</dd>
+                  <dd className="text-sm font-semibold text-foreground">{formatCrowns(STARTING_CROWNS)} ♛</dd>
                 </div>
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-muted-foreground">Current balance</dt>
-                  <dd className="text-sm font-semibold text-foreground">{crowns.toFixed(2)} ♛</dd>
+                  <dd className="text-sm font-semibold text-foreground">{formatCrowns(crowns)} ♛</dd>
                 </div>
               </dl>
             </Card>

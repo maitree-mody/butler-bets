@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import Nav from '@/app/components/Nav'
 import Card from '@/app/components/ui/Card'
 import { markAllNotificationsRead } from '@/app/actions/notifications'
+import { formatCrownsSigned } from '@/lib/format-crowns'
 
 function timeAgo(iso: string): string {
   const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
@@ -82,7 +83,7 @@ export default async function NotificationsPage() {
             {rows.length === 0 ? (
               <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
                 <Bell className="h-8 w-8 text-muted-foreground/40" strokeWidth={1} />
-                <p className="text-sm text-muted-foreground">No notifications yet</p>
+                <p className="text-sm text-muted-foreground">All quiet. Like Butler at 4am. (Butler is never quiet at 4am.)</p>
               </div>
             ) : (
               <ul className="divide-y divide-border">
@@ -97,7 +98,7 @@ export default async function NotificationsPage() {
                           <p className="text-sm font-semibold text-foreground">{n.title}</p>
                           <div className="flex items-center gap-2 shrink-0">
                             {n.crowns_change > 0 && (
-                              <span className="text-xs font-bold text-success">+{n.crowns_change}&nbsp;♛</span>
+                              <span className="text-xs font-bold text-success">{formatCrownsSigned(n.crowns_change)}&nbsp;♛</span>
                             )}
                             <span className="text-[11px] text-muted-foreground/60">{timeAgo(n.created_at)}</span>
                           </div>
