@@ -42,7 +42,7 @@ export function CreateMarketForm() {
           <span className="text-xs font-semibold text-danger">Required</span>
         </div>
         <p className="mb-1.5 text-xs text-muted-foreground">
-          Describe exactly what counts as YES — so there&apos;s no argument later.
+          Describe exactly what counts as YES, so there&apos;s no argument later.
         </p>
         <textarea
           id="description"

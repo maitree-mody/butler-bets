@@ -22,7 +22,7 @@ async function getSocialProof() {
 
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_domain:
-    "This one's Columbia & Barnard only — sign in with your @columbia.edu or @barnard.edu email.",
+    "This one's Columbia & Barnard only: sign in with your @columbia.edu or @barnard.edu email.",
   auth_failed: "Sign-in didn't go through. Give it another shot.",
 }
 
@@ -81,8 +81,9 @@ export default async function LoginPage({
               <em className="italic text-columbia" style={{ fontFamily: 'var(--font-display)' }}>{HERO_LINE_2}</em>
             </h1>
             <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">
-              Play-money markets for everything happening on campus.<br />
-              Sign in with your Columbia or Barnard account to get in on it.
+              Play-money markets for everything happening on campus.
+              <br />
+              Sign in with your Columbia or Barnard account.
             </p>
 
             {errorMessage && (

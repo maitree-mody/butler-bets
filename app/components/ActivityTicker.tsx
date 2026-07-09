@@ -64,7 +64,7 @@ export default function ActivityTicker() {
   if (trades.length === 0) {
     return (
       <div className="sticky bottom-0 z-20 mt-auto border-t border-columbia/15 bg-[#F4F8FF] py-2 text-center text-xs text-muted-foreground">
-        No activity yet — someone place a bet already
+        No activity yet. Someone place a bet already
       </div>
     )
   }

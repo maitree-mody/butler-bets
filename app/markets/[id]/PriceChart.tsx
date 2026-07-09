@@ -70,7 +70,7 @@ export default function PriceChart({ points }: { points: PricePoint[] }) {
         </div>
       </div>
       {sparse && (
-        <p className="px-5 pt-3 text-xs text-muted-foreground">Not enough trades in this window — showing full history.</p>
+        <p className="px-5 pt-3 text-xs text-muted-foreground">Not enough trades in this window. Showing full history.</p>
       )}
       <div className="h-[200px] w-full px-2 py-3 sm:px-4">
         <ResponsiveContainer width="100%" height="100%">

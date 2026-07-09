@@ -17,6 +17,9 @@ export async function setDisplayNameAction(
   const err = validate(raw)
   if (err) return err
 
+  const ageConfirmed = formData.get('age_confirmed') === 'on'
+  if (!ageConfirmed) return 'You must be 18 or older to use Butler Bets.'
+
   const supabase = await createClient()
   const {
     data: { user },
@@ -25,7 +28,7 @@ export async function setDisplayNameAction(
 
   const { error } = await supabase
     .from('users')
-    .update({ display_name: raw.trim() })
+    .update({ display_name: raw.trim(), consented: true })
     .eq('id', user.id)
 
   if (error) return `Could not save: ${error.message}`

@@ -153,7 +153,7 @@ export default async function ProfilePage() {
 
               {openPositions.length === 0 ? (
                 <Card padding="lg" className="text-center">
-                  <p className="text-sm text-muted-foreground">No open positions yet — get off the Sundial and into a market.</p>
+                  <p className="text-sm text-muted-foreground">No open positions yet. Get off the Sundial and into a market.</p>
                 </Card>
               ) : (
                 <Card padding="none" className="overflow-hidden">
@@ -236,7 +236,7 @@ export default async function ProfilePage() {
               {recentTrades.length === 0 ? (
                 <Card padding="lg" className="text-center">
                   <p className="text-sm text-muted-foreground">
-                    No trades yet — Butler ain&apos;t gonna bet on itself.
+                    No trades yet. Butler ain&apos;t gonna bet on itself.
                   </p>
                 </Card>
               ) : (
@@ -285,7 +285,7 @@ export default async function ProfilePage() {
                               <td className="max-w-[12rem] py-3.5 pl-5 pr-4 text-sm font-medium text-foreground">
                                 <span className="flex items-center gap-2">
                                   <cat.Icon className="h-3.5 w-3.5 shrink-0" style={{ color: cat.sparkColor }} strokeWidth={1.8} />
-                                  <span className="truncate">{trade.markets?.question ?? '—'}</span>
+                                  <span className="truncate">{trade.markets?.question ?? 'N/A'}</span>
                                 </span>
                               </td>
                               <td className="py-3.5 pr-4 text-right">

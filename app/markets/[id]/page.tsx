@@ -215,7 +215,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                       ))}
                     </ol>
                   ) : (
-                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No positions yet — plant your flag first.</p>
+                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No positions yet. Plant your flag first.</p>
                   )}
                 </div>
 
@@ -238,7 +238,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                       ))}
                     </ul>
                   ) : (
-                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No trades yet — be the icebreaker.</p>
+                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No trades yet. Be the icebreaker.</p>
                   )}
                 </div>
               </div>

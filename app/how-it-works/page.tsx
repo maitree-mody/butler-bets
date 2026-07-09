@@ -13,12 +13,12 @@ const BASICS = [
   {
     Icon: Wallet,
     t: 'Start with 1,000 Crowns',
-    d: 'Every student starts with 1,000 Crowns — play money, never real money.',
+    d: 'Every student starts with 1,000 Crowns: play money, never real money.',
   },
   {
     Icon: HelpCircle,
     t: 'Markets are yes/no questions',
-    d: 'Each market asks something about campus life — will it snow, will the game go into overtime, you name it.',
+    d: 'Each market asks something about campus life: will it snow, will the game go into overtime, you name it.',
   },
   {
     Icon: ShoppingCart,
@@ -33,7 +33,7 @@ const BASICS = [
   {
     Icon: Coins,
     t: 'Winning shares pay 1 Crown',
-    d: 'Right when it resolves? Each winning share pays out 1 Crown. Wrong, and it\'s worth 0 — so buying low and being right means profit.',
+    d: 'Right when it resolves? Each winning share pays out 1 Crown. Wrong, and it\'s worth 0, so buying low and being right means profit.',
   },
   {
     Icon: RefreshCw,
@@ -53,7 +53,7 @@ const STEPS = [
 const FAQS = [
   {
     q: 'Do I need someone to sell to me?',
-    a: 'Nope — the system always trades with you instantly. No waiting around for a match.',
+    a: 'Nope. The system always trades with you instantly. No waiting around for a match.',
   },
   {
     q: 'Can I lose all my Crowns?',
@@ -65,7 +65,7 @@ const FAQS = [
   },
   {
     q: 'Is this real gambling?',
-    a: 'No — it\'s 100% play money, just for fun and bragging rights.',
+    a: 'No. It\'s 100% play money, just for fun and bragging rights.',
   },
 ]
 
@@ -89,7 +89,7 @@ export default async function HowItWorksPage() {
           <h1 className="page-title">How ButlerBets works</h1>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
             ButlerBets is a play-money prediction market for Columbia and Barnard students.
-            Bet fake currency (Crowns) on campus events — from &ldquo;will it snow&rdquo; to
+            Bet fake currency (Crowns) on campus events: from &ldquo;will it snow&rdquo; to
             inside jokes about people you know. It&apos;s all for fun, bragging rights, and
             seeing who can predict campus life best. No real money, ever.
           </p>
@@ -141,7 +141,7 @@ export default async function HowItWorksPage() {
             </div>
             <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" strokeWidth={2} />
-              Done — you&apos;re officially trading.
+              Done. You&apos;re officially trading.
             </p>
           </Card>
         </section>
@@ -174,7 +174,7 @@ export default async function HowItWorksPage() {
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 rounded-2xl border border-columbia/20 bg-columbia-soft/60 px-6 py-8 text-center">
             <Trophy className="h-8 w-8 shrink-0 text-columbia" strokeWidth={1.6} />
             <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Your profit is tracked automatically — the best predictors rise to the top of
+              Your profit is tracked automatically: the best predictors rise to the top of
               the leaderboard.
             </p>
             <Link

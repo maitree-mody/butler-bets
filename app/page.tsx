@@ -117,7 +117,7 @@ export default async function HomePage() {
       <Nav email={user.email ?? ''} />
 
       {/* ── HERO ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden">
+      <section className="relative flex min-h-screen items-center overflow-hidden">
         {/* Low Library watermark — same background used on the login page */}
         <div
           className="pointer-events-none absolute inset-0 bg-no-repeat"
@@ -130,7 +130,7 @@ export default async function HomePage() {
           aria-hidden="true"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-columbia-soft/60 to-transparent" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pb-36 pt-24 lg:grid-cols-2">
+        <div className="relative mx-auto grid w-full max-w-7xl items-center gap-12 px-6 py-24 lg:grid-cols-2">
 
           {/* Left: copy */}
           <div className="relative">
@@ -139,7 +139,7 @@ export default async function HomePage() {
               <em className="italic text-columbia" style={{ fontFamily: 'var(--font-display)' }}>{HERO_LINE_2}</em>
             </h1>
             <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
-              Play-money prediction markets for everything Columbia can&apos;t stop arguing about —
+              Play-money prediction markets for everything Columbia can&apos;t stop arguing about:
               will it snow before Orgo Night? Put your Crowns where your mouth is.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -346,8 +346,8 @@ function PillBox({ label, value, tone }: { label: string; value: string; tone: '
 
 function HowItWorks() {
   const steps = [
-    { Icon: Search,     t: 'Discover markets',  d: "From housing lottery odds to dining hall drama — if Columbia's talking about it, there's probably a market." },
-    { Icon: TrendingUp, t: 'Trade forecasts',   d: 'Buy YES or NO with Crowns, not meal swipes — between ♛0.01 and ♛0.99.' },
+    { Icon: Search,     t: 'Discover markets',  d: "From housing lottery odds to dining hall drama: if Columbia's talking about it, there's probably a market." },
+    { Icon: TrendingUp, t: 'Trade forecasts',   d: 'Buy YES or NO with Crowns, not meal swipes, between ♛0.01 and ♛0.99.' },
     { Icon: Trophy,     t: 'Track outcomes',    d: "Called it right? Winning shares pay ♛1.00. Called it wrong? Welcome to the leaderboard's basement." },
   ]
   return (
@@ -448,7 +448,7 @@ function ReadyCTA() {
               Ready to put your Crowns where your mouth is?
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Join your fellow Lions turning hot takes into bragging rights — no real money, maximum campus chaos.
+              Join your fellow Lions turning hot takes into bragging rights: no real money, maximum campus chaos.
             </p>
           </div>
         </div>
