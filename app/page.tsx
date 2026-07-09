@@ -12,30 +12,11 @@ import { rankUsers } from '@/lib/ranking'
 import { HERO_LINE_1, HERO_LINE_2 } from '@/lib/copy'
 import { formatCrowns } from '@/lib/format-crowns'
 import Nav from '@/app/components/Nav'
-import MarketCard, { Sparkline } from '@/app/components/MarketCard'
-
-/* ── Types ──────────────────────────────────────────────────── */
-type MarketView = 'all' | 'open' | 'resolved' | 'active'
-
-const marketViews: Array<{ value: MarketView; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'open', label: 'Open' },
-  { value: 'resolved', label: 'Resolved' },
-  { value: 'active', label: 'Active · 24h' },
-]
+import { Sparkline } from '@/app/components/MarketCard'
+import MarketsExplorer from '@/app/components/MarketsExplorer'
 
 /* ── Page (server component) ─────────────────────────────── */
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ view?: string | string[] }>
-}) {
-  const { view } = (await searchParams) ?? {}
-  const requestedView = Array.isArray(view) ? view[0] : view
-  const currentView: MarketView = marketViews.some((o) => o.value === requestedView)
-    ? (requestedView as MarketView)
-    : 'all'
-
+export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -48,12 +29,16 @@ export default async function HomePage({
   if (!userProfile?.display_name) redirect('/onboarding')
 
   const oneDayAgo = isoTimestampHoursAgo(24)
-  const [marketsResult, recentTradesResult, positionsResult, usersCountResult, liveActivityResult] = await Promise.all([
+  const fortyEightHoursAgo = isoTimestampHoursAgo(48)
+  const [marketsResult, recentTradesResult, trending48hResult, positionsResult, usersCountResult, liveActivityResult] = await Promise.all([
     supabase
       .from('markets')
-      .select('id, question, closes_at, status, b, q_yes, q_no')
+      .select('id, question, closes_at, created_at, resolved_at, status, b, q_yes, q_no')
       .order('created_at', { ascending: false }),
     supabase.from('trades').select('market_id').gte('created_at', oneDayAgo),
+    // Wider 48h window feeds the "Trending" tab's sort order only — the card
+    // badge below still shows the 24h count via recentTradeCounts.
+    supabase.from('trades').select('market_id').gte('created_at', fortyEightHoursAgo),
     supabase.from('positions').select('market_id').eq('user_id', user.id),
     supabase.from('users').select('*', { count: 'exact', head: true }),
     // Mirrors ActivityTicker's exact select shape — a one-shot server-rendered
@@ -66,30 +51,16 @@ export default async function HomePage({
   ])
 
   const { data: markets, error } = marketsResult
-  const recentTradeCounts = new Map<string, number>()
+  const recentTradeCounts: Record<string, number> = {}
   for (const trade of recentTradesResult.data ?? []) {
-    recentTradeCounts.set(trade.market_id, (recentTradeCounts.get(trade.market_id) ?? 0) + 1)
+    recentTradeCounts[trade.market_id] = (recentTradeCounts[trade.market_id] ?? 0) + 1
+  }
+  const tradeCounts48h: Record<string, number> = {}
+  for (const trade of trending48hResult.data ?? []) {
+    tradeCounts48h[trade.market_id] = (tradeCounts48h[trade.market_id] ?? 0) + 1
   }
 
   const openMarkets = markets?.filter((m) => m.status === 'open') ?? []
-  const marketCounts: Record<MarketView, number> = {
-    all: markets?.length ?? 0,
-    open: openMarkets.length,
-    resolved: markets?.filter((m) => m.status === 'resolved').length ?? 0,
-    active: markets?.filter((m) => recentTradeCounts.has(m.id)).length ?? 0,
-  }
-  const filteredMarkets = (markets ?? []).filter((m) => {
-    if (currentView === 'open') return m.status === 'open'
-    if (currentView === 'resolved') return m.status === 'resolved'
-    if (currentView === 'active') return recentTradeCounts.has(m.id)
-    return true
-  })
-  if (currentView === 'all') {
-    filteredMarkets.sort((a, b) => {
-      const p = (s: string) => s === 'open' ? 0 : s === 'resolved' ? 1 : 2
-      return p(a.status) - p(b.status)
-    })
-  }
 
   const crowns = Number(userProfile?.crowns ?? 0)
   const marketsTraded = positionsResult.data?.length ?? 0
@@ -218,68 +189,19 @@ export default async function HomePage({
 
       {/* ── FEATURED MARKETS ─────────────────────────────── */}
       <section id="markets" className="mx-auto max-w-7xl px-6 pb-16 pt-16">
-        {/* Header */}
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 className="font-display text-3xl font-bold text-columbia-deep">Live Markets</h2>
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Filter pills */}
-            <div className="flex items-center gap-1.5">
-              {marketViews.map((option) => {
-                const selected = option.value === currentView
-                return (
-                  <Link
-                    key={option.value}
-                    href={option.value === 'all' ? '/' : `/?view=${option.value}`}
-                    aria-current={selected ? 'page' : undefined}
-                    className={`pressable rounded-full px-3 py-1 text-xs font-semibold transition-colors duration-150 ease-out ${
-                      selected
-                        ? 'bg-columbia text-primary-foreground shadow-sm'
-                        : 'border border-border bg-card text-muted-foreground hover:border-columbia hover:text-columbia'
-                    }`}
-                  >
-                    {option.label}
-                    <span className="ml-1 opacity-60">{marketCounts[option.value]}</span>
-                  </Link>
-                )
-              })}
-            </div>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1 text-sm text-columbia hover:text-columbia-deep"
-            >
-              View all markets <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
+        <h2 className="font-display text-3xl font-bold text-columbia-deep">Live Markets</h2>
 
         {error ? (
           <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive" role="alert">
             Failed to load markets: {error.message}
           </div>
-        ) : filteredMarkets.length > 0 ? (
-          <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {filteredMarkets.map((market) => (
-              <li key={market.id}>
-                <MarketCard market={market} recentTrades={recentTradeCounts.get(market.id) ?? 0} />
-              </li>
-            ))}
-          </ul>
         ) : (
-          <div className="mt-8 rounded-2xl border border-border bg-card py-20 text-center">
-            <p className="font-display text-2xl font-semibold text-columbia-deep">
-              No {currentView === 'all' ? '' : `${currentView} `}markets yet.
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {currentView === 'active'
-                ? 'Activity appears after a trade.'
-                : 'Try another filter or open a new market.'}
-            </p>
-            {currentView !== 'all' && (
-              <Link href="/" className="mt-5 inline-block text-sm font-semibold text-columbia underline underline-offset-4">
-                View all markets →
-              </Link>
-            )}
-          </div>
+          <MarketsExplorer
+            openMarkets={openMarkets}
+            resolvedMarkets={markets?.filter((m) => m.status === 'resolved') ?? []}
+            recentTradeCounts={recentTradeCounts}
+            tradeCounts48h={tradeCounts48h}
+          />
         )}
       </section>
 
