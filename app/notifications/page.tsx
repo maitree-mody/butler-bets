@@ -39,6 +39,17 @@ export default async function NotificationsPage() {
   const rows = (notifications ?? []) as NotificationRow[]
   const unreadCount = rows.filter((n) => !n.read).length
 
+  // Mark everything as read on load — the unread state above still reflects
+  // what was unread when this page was requested, so the highlight/badge
+  // for this view stays accurate even though the rows are now flipped to read.
+  if (unreadCount > 0) {
+    await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', user.id)
+      .eq('read', false)
+  }
+
   return (
     <>
       <Nav email={user.email ?? ''} />

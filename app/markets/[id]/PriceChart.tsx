@@ -46,7 +46,7 @@ export default function PriceChart({ points }: { points: PricePoint[] }) {
 
   return (
     <section aria-labelledby="price-history-title">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2.5">
         <h2 id="price-history-title" className="text-sm font-semibold text-foreground">YES price history</h2>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1 rounded-full border border-border bg-muted/40 p-0.5">
@@ -72,7 +72,7 @@ export default function PriceChart({ points }: { points: PricePoint[] }) {
       {sparse && (
         <p className="px-5 pt-3 text-xs text-muted-foreground">Not enough trades in this window — showing full history.</p>
       )}
-      <div className="h-56 w-full px-2 py-4 sm:h-64 sm:px-4">
+      <div className="h-[200px] w-full px-2 py-3 sm:px-4">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={sparse ? points : displayPoints} margin={{ top: 4, right: 14, bottom: 4, left: 2 }}>
             <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="2 5" />

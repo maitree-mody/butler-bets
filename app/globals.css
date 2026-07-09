@@ -124,19 +124,19 @@
   font-family: var(--font-display), Georgia, serif;
 }
 
-/* Market card hover */
+/* Market card hover — signal interactivity via border/background only, no lift or shadow bloom */
 .market-card {
-  transition: box-shadow 200ms ease, transform 200ms ease;
+  transition: border-color 150ms ease-out, background-color 150ms ease-out;
 }
 .market-card:hover {
-  box-shadow: 0 8px 24px color-mix(in oklch, var(--columbia) 14%, transparent);
-  transform: translateY(-2px);
+  border-color: color-mix(in oklch, var(--columbia) 40%, var(--border));
+  background-color: color-mix(in oklch, var(--card) 97%, var(--columbia) 3%);
 }
 
 /* Pressable interaction */
 .pressable {
-  transition: background-color 140ms ease, color 140ms ease,
-              border-color 140ms ease, transform 80ms ease-out;
+  transition: background-color 150ms ease-out, color 150ms ease-out,
+              border-color 150ms ease-out, transform 80ms ease-out;
 }
 .pressable:active { transform: translateY(1px); }
 

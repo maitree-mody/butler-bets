@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { priceYes, tradeCost, sellPayout } from '@/lib/lmsr'
 import { executeTradeAction, sellSharesAction } from '@/app/actions/trade'
+import PricingInfoTooltip from './PricingInfoTooltip'
 
 interface TradePanelProps {
   marketId: string
@@ -81,11 +82,11 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
   return (
     <section
       id="trade-ticket"
-      className="scroll-mt-20 rounded-2xl border border-border bg-card p-5 shadow-sm"
+      className="scroll-mt-20 rounded-2xl border border-border bg-card p-3.5 shadow-sm"
       aria-labelledby="trade-ticket-title"
     >
       {/* Header */}
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <h2 id="trade-ticket-title" className="font-display text-base font-semibold text-columbia-deep">
           Trade ticket
         </h2>
@@ -96,8 +97,8 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
       </div>
 
       {/* Buy / Sell toggle */}
-      <fieldset className="mb-4">
-        <legend className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+      <fieldset className="mb-3">
+        <legend className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           Order type
         </legend>
         <div className="grid grid-cols-2 gap-2">
@@ -105,9 +106,9 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
             type="button"
             aria-pressed={mode === 'buy'}
             onClick={() => setMode('buy')}
-            className={`pressable rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
+            className={`pressable rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors duration-150 ease-out ${
               mode === 'buy'
-                ? 'bg-columbia-deep text-primary-foreground shadow-md'
+                ? 'bg-columbia-deep text-primary-foreground shadow-sm'
                 : 'border border-border bg-background text-muted-foreground hover:border-columbia-deep'
             }`}
           >
@@ -117,9 +118,9 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
             type="button"
             aria-pressed={mode === 'sell'}
             onClick={() => setMode('sell')}
-            className={`pressable rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
+            className={`pressable rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors duration-150 ease-out ${
               mode === 'sell'
-                ? 'bg-columbia-deep text-primary-foreground shadow-md'
+                ? 'bg-columbia-deep text-primary-foreground shadow-sm'
                 : 'border border-border bg-background text-muted-foreground hover:border-columbia-deep'
             }`}
           >
@@ -129,8 +130,8 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
       </fieldset>
 
       {/* YES / NO toggle */}
-      <fieldset className="mb-4">
-        <legend className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+      <fieldset className="mb-3">
+        <legend className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           Position
         </legend>
         <div className="grid grid-cols-2 gap-3">
@@ -138,10 +139,10 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
             type="button"
             aria-pressed={side === 'yes'}
             onClick={() => setSide('yes')}
-            className={`pressable rounded-xl px-4 py-4 text-left transition-all ${
+            className={`pressable rounded-xl border px-4 py-3 text-left transition-colors duration-150 ease-out ${
               side === 'yes'
-                ? 'scale-[1.02] bg-columbia text-primary-foreground shadow-lg shadow-columbia/40 ring-2 ring-columbia ring-offset-2 ring-offset-card'
-                : 'border border-columbia/20 bg-columbia-soft/60 text-columbia hover:border-columbia'
+                ? 'border-columbia bg-columbia text-primary-foreground ring-1 ring-columbia/50'
+                : 'border-columbia/20 bg-columbia-soft/60 text-columbia hover:border-columbia/60'
             }`}
           >
             <span className="block text-xs font-bold uppercase tracking-widest">Yes</span>
@@ -151,10 +152,10 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
             type="button"
             aria-pressed={side === 'no'}
             onClick={() => setSide('no')}
-            className={`pressable rounded-xl px-4 py-4 text-left transition-all ${
+            className={`pressable rounded-xl border px-4 py-3 text-left transition-colors duration-150 ease-out ${
               side === 'no'
-                ? 'scale-[1.02] bg-danger text-white shadow-lg shadow-danger/40 ring-2 ring-danger ring-offset-2 ring-offset-card'
-                : 'border border-danger/20 bg-danger/5 text-danger hover:border-danger'
+                ? 'border-danger bg-danger text-white ring-1 ring-danger/50'
+                : 'border-danger/20 bg-danger/5 text-danger hover:border-danger/60'
             }`}
           >
             <span className="block text-xs font-bold uppercase tracking-widest">No</span>
@@ -164,14 +165,14 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
       </fieldset>
 
       {/* Quantity input */}
-      <div className="mb-4">
+      <div className="mb-3">
         <label
-          className="mb-2 block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+          className="mb-1.5 block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
           htmlFor="shares-input"
         >
           Quantity
         </label>
-        <div className={`flex min-h-11 items-center rounded-xl border bg-background transition-colors focus-within:border-columbia ${exceedsMax ? 'border-danger' : 'border-border'}`}>
+        <div className={`flex min-h-9 items-center rounded-xl border bg-background transition-colors focus-within:border-columbia ${exceedsMax ? 'border-danger' : 'border-border'}`}>
           <input
             id="shares-input"
             type="number"
@@ -181,17 +182,17 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
             inputMode="numeric"
             value={sharesInput}
             onChange={(e) => setSharesInput(e.target.value)}
-            className="min-w-0 flex-1 bg-transparent px-3 text-lg font-bold text-foreground outline-none"
+            className="min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold text-foreground outline-none"
           />
           <span className="border-l border-border px-3 text-xs font-medium text-muted-foreground">shares</span>
         </div>
-        <div className="mt-2 flex gap-1.5">
+        <div className="mt-1.5 flex gap-1.5">
           {[1, 10, 25, 50].map((n) => (
             <button
               key={n}
               type="button"
               onClick={() => setSharesInput(String(n))}
-              className="pressable flex-1 rounded-lg border border-border py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-columbia hover:text-columbia"
+              className="pressable flex-1 rounded-lg border border-border py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-columbia hover:text-columbia"
             >
               {n}
             </button>
@@ -199,13 +200,13 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
           <button
             type="button"
             onClick={() => setSharesInput(String(mode === 'sell' ? holdingsForSide : MAX_SHARES))}
-            className="pressable flex-1 rounded-lg border border-border py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-columbia hover:text-columbia"
+            className="pressable flex-1 rounded-lg border border-border py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-columbia hover:text-columbia"
           >
             Max
           </button>
         </div>
-        <p className="mt-2 rounded-lg bg-muted px-3 py-2 text-sm font-semibold text-foreground">
-          You own <span className="font-display text-base font-extrabold">{holdingsForSide.toFixed(0)}</span> {side.toUpperCase()} shares
+        <p className="mt-1.5 rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-foreground">
+          You own <span className="font-display font-bold">{holdingsForSide.toFixed(0)}</span> {side.toUpperCase()} shares
         </p>
         {exceedsMax ? (
           <p className="mt-1.5 text-xs font-medium text-danger">
@@ -217,7 +218,11 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
       </div>
 
       {/* Order summary */}
-      <dl className="mb-4 divide-y divide-border rounded-xl border border-border text-sm">
+      <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        Cost &amp; payout
+        <PricingInfoTooltip />
+      </div>
+      <dl className="mb-3 divide-y divide-border rounded-xl border border-border text-sm">
         {(mode === 'buy'
           ? [
               { label: 'Side',             value: `${side.toUpperCase()} @ ${Math.round(currentSidePrice * 100)}¢` },
@@ -234,7 +239,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
               { label: 'Balance after', value: balanceAfter.toFixed(2), red: balanceAfter < 0 },
             ]
         ).map(({ label, value, green, red }) => (
-          <div key={label} className="flex items-center justify-between px-3 py-2.5">
+          <div key={label} className="flex items-center justify-between px-3 py-2">
             <dt className="text-muted-foreground">{label}</dt>
             <dd className={`font-semibold ${green ? 'text-success' : red ? 'text-danger' : 'text-foreground'}`}>
               {value}
@@ -248,7 +253,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
         type="button"
         onClick={handleTrade}
         disabled={isPending || validShares === 0 || exceedsMax}
-        className={`pressable w-full rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+        className={`pressable w-full rounded-xl py-3 text-sm font-bold text-white shadow-md transition-colors duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-40 ${
           side === 'yes'
             ? 'bg-columbia shadow-columbia/25 hover:bg-columbia-deep'
             : 'bg-danger shadow-danger/25 hover:bg-red-700'
