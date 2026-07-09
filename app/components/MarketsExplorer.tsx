@@ -68,7 +68,6 @@ export default function MarketsExplorer({
 
   const visibleMarkets = searchedMarkets.slice(0, visible)
   const hasMore = visible < searchedMarkets.length
-  const activeTabLabel = TABS.find((t) => t.value === tab)?.label ?? ''
 
   function handleTabChange(next: Tab) {
     setTab(next)
@@ -145,8 +144,8 @@ export default function MarketsExplorer({
         <div className="mt-8 rounded-2xl border border-border bg-card py-20 text-center">
           <p className="font-display text-2xl font-semibold text-columbia-deep">
             {query
-              ? `No markets match "${query}".`
-              : `No ${tab === 'all' ? '' : `${activeTabLabel.toLowerCase()} `}markets yet.`}
+              ? `Couldn't find a market called "${query}".`
+              : 'Nothing to bet on yet. Surely SOMETHING is happening on campus…'}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             {query ? 'Try a different search term.' : 'Try another tab or open a new market.'}

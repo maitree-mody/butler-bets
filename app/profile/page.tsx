@@ -153,7 +153,7 @@ export default async function ProfilePage() {
 
               {openPositions.length === 0 ? (
                 <Card padding="lg" className="text-center">
-                  <p className="text-sm text-muted-foreground">No open positions yet.</p>
+                  <p className="text-sm text-muted-foreground">No open positions yet — get off the Sundial and into a market.</p>
                 </Card>
               ) : (
                 <Card padding="none" className="overflow-hidden">
@@ -236,7 +236,7 @@ export default async function ProfilePage() {
               {recentTrades.length === 0 ? (
                 <Card padding="lg" className="text-center">
                   <p className="text-sm text-muted-foreground">
-                    No trades yet — head to a market to get started.
+                    No trades yet — Butler ain&apos;t gonna bet on itself.
                   </p>
                 </Card>
               ) : (

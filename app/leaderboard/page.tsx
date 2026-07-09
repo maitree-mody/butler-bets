@@ -89,7 +89,7 @@ export default async function LeaderboardPage() {
             ) : (
               <Card padding="md" className="shrink-0">
                 <p className="text-sm font-semibold text-foreground">Not ranked yet</p>
-                <p className="mt-1 text-xs text-muted-foreground">Make your first trade to join the leaderboard.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Make your first trade and crack the leaderboard.</p>
               </Card>
             ))}
           </div>
@@ -107,7 +107,7 @@ export default async function LeaderboardPage() {
             </Alert>
           ) : rankedUsers.length === 0 ? (
             <p className="rounded-xl border border-border py-12 text-center text-sm text-muted-foreground">
-              No traders yet.
+              No traders yet. Someone&apos;s got to be #1.
             </p>
           ) : (
             <Card padding="none" className="overflow-hidden">

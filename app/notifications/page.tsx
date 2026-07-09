@@ -83,7 +83,7 @@ export default async function NotificationsPage() {
             {rows.length === 0 ? (
               <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
                 <Bell className="h-8 w-8 text-muted-foreground/40" strokeWidth={1} />
-                <p className="text-sm text-muted-foreground">No notifications yet</p>
+                <p className="text-sm text-muted-foreground">All quiet. Like Butler at 4am. (Butler is never quiet at 4am.)</p>
               </div>
             ) : (
               <ul className="divide-y divide-border">

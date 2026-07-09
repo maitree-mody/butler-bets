@@ -153,7 +153,7 @@ export default async function HomePage() {
                 href="/markets/new"
                 className="pressable inline-flex items-center rounded-md border border-columbia px-5 py-3 text-sm font-medium text-columbia hover:bg-columbia-soft"
               >
-                Get Started
+                Start Trading
               </Link>
             </div>
             {totalStudents > 0 && (
@@ -414,7 +414,7 @@ function LiveActivity({
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
       <h2 className="mb-4 font-display text-lg font-bold text-columbia-deep">Live activity</h2>
       {items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No activity yet.</p>
+        <p className="text-xs text-muted-foreground">No activity yet. Someone go make history (or at least a trade).</p>
       ) : (
         <ul className="space-y-3">
           {items.map((item) => {
@@ -457,7 +457,7 @@ function ReadyCTA() {
             href="/markets/new"
             className="pressable rounded-md bg-columbia px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-columbia-deep"
           >
-            Get Started
+            Start Trading
           </Link>
           <a
             href="#markets"

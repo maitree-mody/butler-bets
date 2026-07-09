@@ -55,7 +55,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
       <>
         <Nav email={user.email ?? ''} />
         <main className="mx-auto max-w-7xl px-6 py-20 text-center">
-          <p className="font-display text-3xl font-semibold text-columbia-deep">Market not found.</p>
+          <p className="font-display text-3xl font-semibold text-columbia-deep">This market doesn&apos;t exist. Double-check the link?</p>
           <Link href="/" className="mt-5 inline-block text-sm font-semibold text-columbia underline underline-offset-4">
             ← Back to markets
           </Link>
@@ -215,7 +215,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                       ))}
                     </ol>
                   ) : (
-                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No positions yet — be the first to trade.</p>
+                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No positions yet — plant your flag first.</p>
                   )}
                 </div>
 
@@ -238,7 +238,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                       ))}
                     </ul>
                   ) : (
-                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No trades yet — be the first.</p>
+                    <p className="px-4 py-6 text-center text-xs text-muted-foreground">No trades yet — be the icebreaker.</p>
                   )}
                 </div>
               </div>
