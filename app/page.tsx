@@ -339,14 +339,12 @@ function DashboardMock({
     <div className="flex overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-columbia/10">
       {/* Blue sidebar */}
       <aside className="flex w-14 flex-col items-center gap-5 bg-columbia py-5 text-primary-foreground/80">
-        {sidebarLinks.map(({ Icon, label, href }, i) => (
+        {sidebarLinks.map(({ Icon, label, href }) => (
           <Link
             key={label}
             href={href}
             aria-label={label}
-            className={`grid h-9 w-9 place-items-center rounded-md ${
-              i === 0 ? 'bg-white/15 text-white' : 'hover:bg-white/10'
-            }`}
+            className="grid h-9 w-9 place-items-center rounded-md hover:bg-white/10"
           >
             <Icon className="h-4 w-4" strokeWidth={1.8} />
           </Link>
