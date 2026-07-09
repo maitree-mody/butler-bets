@@ -168,7 +168,8 @@ export default async function HomePage({
               <em className="italic text-columbia" style={{ fontFamily: 'var(--font-display)' }}>{HERO_LINE_2}</em>
             </h1>
             <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
-              Campus-powered prediction markets for Columbia students. Built on research, driven by insight.
+              Play-money prediction markets for everything Columbia can&apos;t stop arguing about —
+              will it snow before Orgo Night? Put your Crowns where your mouth is.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -198,7 +199,7 @@ export default async function HomePage({
                   ))}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Join <span className="font-semibold text-foreground">{totalStudents.toLocaleString()}+</span> students trading their forecasts
+                  Join <span className="font-semibold text-foreground">{totalStudents.toLocaleString()}+</span> students trading hot takes
                 </p>
               </div>
             )}
@@ -423,9 +424,9 @@ function PillBox({ label, value, tone }: { label: string; value: string; tone: '
 
 function HowItWorks() {
   const steps = [
-    { Icon: Search,     t: 'Discover markets',  d: 'Explore questions across campus, finance, politics, and sports.' },
-    { Icon: TrendingUp, t: 'Trade forecasts',   d: 'Buy Yes or No shares between ♛0.01 and ♛0.99.' },
-    { Icon: Trophy,     t: 'Track outcomes',    d: 'Winning shares pay ♛1.00. Climb the leaderboard.' },
+    { Icon: Search,     t: 'Discover markets',  d: "From housing lottery odds to dining hall drama — if Columbia's talking about it, there's probably a market." },
+    { Icon: TrendingUp, t: 'Trade forecasts',   d: 'Buy YES or NO with Crowns, not meal swipes — between ♛0.01 and ♛0.99.' },
+    { Icon: Trophy,     t: 'Track outcomes',    d: "Called it right? Winning shares pay ♛1.00. Called it wrong? Welcome to the leaderboard's basement." },
   ]
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -465,9 +466,10 @@ function AlmaMater() {
         className="mx-auto h-24 w-auto opacity-90"
         loading="lazy"
       />
-      <h3 className="mt-3 text-center font-display text-lg font-bold text-columbia-deep">Built at Butler. Tested at Amity.</h3>
+      <h3 className="mt-3 text-center font-display text-lg font-bold text-columbia-deep">Built at Butler. Tested at 3am.</h3>
       <p className="mt-2 text-center text-xs leading-relaxed text-muted-foreground">
         We believe in the pursuit of truth, the power of ideas, and the Columbia spirit of inquiry.
+        butler bets empowers students to turn insight into impact.
       </p>
       <div className="mt-4 grid grid-cols-3 gap-3">
         {values.map((v) => (
@@ -521,10 +523,10 @@ function ReadyCTA() {
           <Crown className="h-6 w-6 shrink-0 text-columbia" strokeWidth={1.6} />
           <div>
             <h3 className="font-display text-lg font-bold text-columbia-deep">
-              Ready to shape what&apos;s next?
+              Ready to put your Crowns where your mouth is?
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Join thousands of Columbia students turning information into insight.
+              Join your fellow Lions turning hot takes into bragging rights — no real money, maximum campus chaos.
             </p>
           </div>
         </div>
@@ -555,7 +557,7 @@ function Footer() {
           <Crown className="h-5 w-5 text-columbia-deep" strokeWidth={1.5} />
           <div>
             <div className="font-display font-bold text-columbia-deep">butler bets</div>
-            <div className="text-xs text-muted-foreground">Campus prediction markets, powered by Columbia.</div>
+            <div className="text-xs text-muted-foreground">Campus prediction markets. Zero real money, all the drama.</div>
           </div>
         </div>
         <div className="flex items-center gap-6 text-muted-foreground">
