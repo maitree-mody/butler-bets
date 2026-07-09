@@ -5,6 +5,7 @@ import { priceYes } from '@/lib/lmsr'
 import { displayNameFromEmail } from '@/lib/display-name'
 import { inferCategory } from '@/lib/category'
 import { isoTimestampHoursAgo } from '@/lib/time'
+import { formatCrowns } from '@/lib/format-crowns'
 import Nav from '@/app/components/Nav'
 import Badge from '@/app/components/ui/Badge'
 import TradePanel from './TradePanel'
@@ -182,9 +183,9 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
                 {[
                   { label: 'Total shares', value: volume.toLocaleString() },
                   { label: 'Trades', value: tradePoints.length.toLocaleString() },
-                  { label: 'Volume', value: `${totalVolume.toFixed(0)} ♛` },
+                  { label: 'Volume', value: `${formatCrowns(totalVolume)} ♛` },
                   { label: 'Open interest', value: openInterest.toLocaleString() },
-                  { label: '24h volume', value: `${volume24h.toFixed(0)} ♛` },
+                  { label: '24h volume', value: `${formatCrowns(volume24h)} ♛` },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex items-baseline gap-1.5 text-xs">
                     <span className="text-muted-foreground">{label}</span>

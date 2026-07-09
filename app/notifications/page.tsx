@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import Nav from '@/app/components/Nav'
 import Card from '@/app/components/ui/Card'
 import { markAllNotificationsRead } from '@/app/actions/notifications'
+import { formatCrownsSigned } from '@/lib/format-crowns'
 
 function timeAgo(iso: string): string {
   const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
@@ -97,7 +98,7 @@ export default async function NotificationsPage() {
                           <p className="text-sm font-semibold text-foreground">{n.title}</p>
                           <div className="flex items-center gap-2 shrink-0">
                             {n.crowns_change > 0 && (
-                              <span className="text-xs font-bold text-success">+{n.crowns_change}&nbsp;♛</span>
+                              <span className="text-xs font-bold text-success">{formatCrownsSigned(n.crowns_change)}&nbsp;♛</span>
                             )}
                             <span className="text-[11px] text-muted-foreground/60">{timeAgo(n.created_at)}</span>
                           </div>

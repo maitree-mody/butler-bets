@@ -10,6 +10,7 @@ import { isoTimestampHoursAgo } from '@/lib/time'
 import { displayNameFromEmail } from '@/lib/display-name'
 import { rankUsers } from '@/lib/ranking'
 import { HERO_LINE_1, HERO_LINE_2 } from '@/lib/copy'
+import { formatCrowns } from '@/lib/format-crowns'
 import Nav from '@/app/components/Nav'
 import MarketCard, { Sparkline } from '@/app/components/MarketCard'
 
@@ -320,8 +321,8 @@ function DashboardMock({
   const buyingPower = Math.floor(crowns * 0.28)
 
   const stats = [
-    { l: 'Portfolio Value', v: `♛${crowns.toLocaleString()}` },
-    { l: 'Buying Power',    v: `♛${buyingPower.toLocaleString()}` },
+    { l: 'Portfolio Value', v: `♛${formatCrowns(crowns)}` },
+    { l: 'Buying Power',    v: `♛${formatCrowns(buyingPower)}` },
     { l: 'Markets Traded',  v: String(marketsTraded) },
     { l: 'Rank',            v: rankLabel },
   ]

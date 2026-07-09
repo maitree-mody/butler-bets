@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { priceYes, tradeCost, sellPayout } from '@/lib/lmsr'
 import { executeTradeAction, sellSharesAction } from '@/app/actions/trade'
+import { formatCrowns } from '@/lib/format-crowns'
 import PricingInfoTooltip from './PricingInfoTooltip'
 
 interface TradePanelProps {
@@ -92,7 +93,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
         </h2>
         <div className="text-right">
           <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Available</p>
-          <p className="text-sm font-bold text-foreground">{availableBalance.toFixed(2)} ♛</p>
+          <p className="text-sm font-bold text-foreground">{formatCrowns(availableBalance)} ♛</p>
         </div>
       </div>
 
@@ -226,17 +227,17 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
         {(mode === 'buy'
           ? [
               { label: 'Side',             value: `${side.toUpperCase()} @ ${Math.round(currentSidePrice * 100)}¢` },
-              { label: 'Cost',             value: `${previewCost.toFixed(2)} ♛` },
+              { label: 'Cost',             value: `${formatCrowns(previewCost)} ♛` },
               { label: 'New price',        value: `${Math.round(newSidePrice * 100)}¢` },
-              { label: 'Payout if wins',   value: `${validShares.toFixed(2)} ♛` },
-              { label: 'Potential profit', value: `+${Math.max(0, potentialProfit).toFixed(2)}`, green: true },
-              { label: 'Balance after',    value: balanceAfter.toFixed(2), red: balanceAfter < 0 },
+              { label: 'Payout if wins',   value: `${formatCrowns(validShares)} ♛` },
+              { label: 'Potential profit', value: `+${formatCrowns(Math.max(0, potentialProfit))}`, green: true },
+              { label: 'Balance after',    value: formatCrowns(balanceAfter), red: balanceAfter < 0 },
             ]
           : [
               { label: 'Side',          value: `${side.toUpperCase()} @ ${Math.round(currentSidePrice * 100)}¢` },
-              { label: 'Payout',        value: `${previewCost.toFixed(2)} ♛` },
+              { label: 'Payout',        value: `${formatCrowns(previewCost)} ♛` },
               { label: 'New price',     value: `${Math.round(newSidePrice * 100)}¢` },
-              { label: 'Balance after', value: balanceAfter.toFixed(2), red: balanceAfter < 0 },
+              { label: 'Balance after', value: formatCrowns(balanceAfter), red: balanceAfter < 0 },
             ]
         ).map(({ label, value, green, red }) => (
           <div key={label} className="flex items-center justify-between px-3 py-2">
@@ -262,8 +263,8 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
         {isPending
           ? 'Placing order…'
           : mode === 'buy'
-            ? `Buy ${side.toUpperCase()} · ${previewCost.toFixed(2)} ♛`
-            : `Sell ${side.toUpperCase()} · ${previewCost.toFixed(2)} ♛`}
+            ? `Buy ${side.toUpperCase()} · ${formatCrowns(previewCost)} ♛`
+            : `Sell ${side.toUpperCase()} · ${formatCrowns(previewCost)} ♛`}
       </button>
 
       {/* Feedback */}
@@ -274,7 +275,7 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
               <span>✓</span> Order filled
             </p>
             <p className="mt-0.5 text-xs text-success/70">
-              {successInfo.shares} {successInfo.side.toUpperCase()} · {successInfo.mode === 'sell' ? 'received' : 'cost'} {successInfo.cost.toFixed(2)} ♛ · balance {successInfo.newCrowns.toFixed(2)} ♛
+              {successInfo.shares} {successInfo.side.toUpperCase()} · {successInfo.mode === 'sell' ? 'received' : 'cost'} {formatCrowns(successInfo.cost)} ♛ · balance {formatCrowns(successInfo.newCrowns)} ♛
             </p>
           </div>
         )}
