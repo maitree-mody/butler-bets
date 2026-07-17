@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cost, priceYes, tradeCost, sellPayout } from './lmsr';
+import { cost, priceYes, tradeCost, sellPayout, sharesForCost, sharesForSellPayout } from './lmsr';
 
 describe('LMSR', () => {
   it('priceYes is 0.5 at a flat market (qYes=0, qNo=0)', () => {
@@ -66,5 +66,39 @@ describe('LMSR', () => {
       -tradeCost(qYes, qNo, b, 'yes', -shares),
       10,
     );
+  });
+
+  it('sharesForCost round-trips tradeCost at a flat market', () => {
+    const paidFor30 = tradeCost(0, 0, 100, 'yes', 30);
+    expect(sharesForCost(0, 0, 100, 'yes', paidFor30)).toBeCloseTo(30, 6);
+  });
+
+  it('sharesForCost round-trips tradeCost at a skewed market', () => {
+    const qYes = 42;
+    const qNo = 17;
+    const b = 80;
+    const cost17 = tradeCost(qYes, qNo, b, 'no', 17);
+    expect(sharesForCost(qYes, qNo, b, 'no', cost17)).toBeCloseTo(17, 6);
+  });
+
+  it('sharesForCost of zero crowns is zero shares', () => {
+    expect(sharesForCost(42, 17, 80, 'yes', 0)).toBeCloseTo(0, 6);
+  });
+
+  it('sharesForSellPayout round-trips sellPayout', () => {
+    const qYes = 30;
+    const qNo = 0;
+    const b = 100;
+    const payoutFor12 = sellPayout(qYes, qNo, b, 'yes', 12);
+    expect(sharesForSellPayout(qYes, qNo, b, 'yes', payoutFor12)).toBeCloseTo(12, 6);
+  });
+
+  it('sharesForCost then tradeCost on the result returns (approximately) the original budget', () => {
+    const qYes = 5;
+    const qNo = 60;
+    const b = 40;
+    const budget = 25;
+    const shares = sharesForCost(qYes, qNo, b, 'no', budget);
+    expect(tradeCost(qYes, qNo, b, 'no', shares)).toBeCloseTo(budget, 6);
   });
 });

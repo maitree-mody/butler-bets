@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { priceYes } from '@/lib/lmsr'
-import { isoTimestampHoursAgo } from '@/lib/time'
+import { isoTimestampHoursAgo, isMarketOpen } from '@/lib/time'
 import { displayNameFromEmail } from '@/lib/display-name'
 import { rankUsers } from '@/lib/ranking'
 import { HERO_LINE_1, HERO_LINE_2 } from '@/lib/copy'
@@ -60,7 +60,7 @@ export default async function HomePage() {
     tradeCounts48h[trade.market_id] = (tradeCounts48h[trade.market_id] ?? 0) + 1
   }
 
-  const openMarkets = markets?.filter((m) => m.status === 'open') ?? []
+  const openMarkets = markets?.filter((m) => isMarketOpen(m.status, m.closes_at)) ?? []
 
   const crowns = Number(userProfile?.crowns ?? 0)
   const marketsTraded = positionsResult.data?.length ?? 0

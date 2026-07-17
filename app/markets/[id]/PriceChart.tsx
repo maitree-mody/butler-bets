@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import {
-  CartesianGrid, Line, LineChart, ReferenceLine,
+  Area, CartesianGrid, ComposedChart, Line,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 
@@ -44,37 +44,70 @@ export default function PriceChart({ points }: { points: PricePoint[] }) {
     return { displayPoints: filtered, sparse: false }
   }, [points, cutoff])
 
+  const activePoints = sparse ? points : displayPoints
+
+  // Zoom the y-axis to where the price has actually been trading, rather than
+  // always spanning the full 0–100¢ range — a market sitting around 60-65¢
+  // should look like it's moving, not sit flat two-thirds up a huge scale.
+  const { domainMin, domainMax, last, deltaPct } = useMemo(() => {
+    const values = activePoints.map((p) => p.price)
+    const dataMin = values.length ? Math.min(...values) : 0.4
+    const dataMax = values.length ? Math.max(...values) : 0.6
+    const span = dataMax - dataMin
+    const pad = Math.max(span * 0.25, 0.04)
+    const min = Math.max(0, dataMin - pad)
+    const max = Math.min(1, dataMax + pad)
+    const lastPoint = activePoints.at(-1) ?? null
+    const firstPoint = activePoints[0] ?? null
+    const delta = lastPoint && firstPoint ? (lastPoint.price - firstPoint.price) * 100 : 0
+    return { domainMin: min, domainMax: max, last: lastPoint, deltaPct: delta }
+  }, [activePoints])
+
   return (
     <section aria-labelledby="price-history-title">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2.5">
-        <h2 id="price-history-title" className="text-sm font-semibold text-foreground">YES price history</h2>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 rounded-full border border-border bg-muted/40 p-0.5">
-            {RANGES.map(({ key, label }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setRange(key)}
-                aria-pressed={range === key}
-                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                  range === key
-                    ? 'bg-columbia text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-columbia'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <p className="text-xs font-medium text-muted-foreground">0 – 100¢</p>
+        <div className="flex items-center gap-2.5">
+          <h2 id="price-history-title" className="text-sm font-semibold text-foreground">YES price</h2>
+          {last && (
+            <span className="flex items-center gap-1.5">
+              <span className={`h-2 w-2 rounded-full ${deltaPct >= 0 ? 'bg-success' : 'bg-danger'}`} />
+              <span className="font-display text-base font-bold text-foreground">{Math.round(last.price * 100)}¢</span>
+              <span className={`text-xs font-semibold ${deltaPct >= 0 ? 'text-success' : 'text-danger'}`}>
+                {deltaPct >= 0 ? '+' : ''}{Math.round(deltaPct)}¢
+              </span>
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1 rounded-full border border-border bg-muted/40 p-0.5">
+          {RANGES.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setRange(key)}
+              aria-pressed={range === key}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                range === key
+                  ? 'bg-columbia text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-columbia'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
       {sparse && (
         <p className="px-5 pt-3 text-xs text-muted-foreground">Not enough trades in this window. Showing full history.</p>
       )}
-      <div className="h-[200px] w-full px-2 py-3 sm:px-4">
+      <div className="h-[220px] w-full px-2 py-3 sm:px-4">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={sparse ? points : displayPoints} margin={{ top: 4, right: 14, bottom: 4, left: 2 }}>
+          <ComposedChart data={activePoints} margin={{ top: 8, right: 8, bottom: 4, left: 2 }}>
+            <defs>
+              <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--columbia)" stopOpacity={0.28} />
+                <stop offset="100%" stopColor="var(--columbia)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
             <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="2 5" />
             <XAxis
               dataKey="time"
@@ -85,13 +118,14 @@ export default function PriceChart({ points }: { points: PricePoint[] }) {
               minTickGap={60}
             />
             <YAxis
-              domain={[0, 1]}
-              ticks={[0, 0.25, 0.5, 0.75, 1]}
+              orientation="right"
+              domain={[domainMin, domainMax]}
+              tickCount={5}
               tickFormatter={fmtPct}
               tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
               tickLine={false}
               axisLine={false}
-              width={42}
+              width={44}
             />
             <Tooltip
               formatter={(value) => [`${Math.round(Number(value) * 100)}¢`, 'YES price']}
@@ -107,9 +141,15 @@ export default function PriceChart({ points }: { points: PricePoint[] }) {
               itemStyle={{ color: 'var(--columbia-soft)' }}
               labelStyle={{ color: 'oklch(0.7 0.04 260)', marginBottom: 4 }}
             />
-            <ReferenceLine y={0.5} stroke="var(--border)" strokeDasharray="3 5" />
+            <Area
+              type="monotone"
+              dataKey="price"
+              stroke="none"
+              fill="url(#priceGradient)"
+              isAnimationActive={false}
+            />
             <Line
-              type="stepAfter"
+              type="monotone"
               dataKey="price"
               stroke="var(--columbia)"
               strokeWidth={2.5}
@@ -117,7 +157,7 @@ export default function PriceChart({ points }: { points: PricePoint[] }) {
               activeDot={{ r: 4, fill: 'var(--columbia)', stroke: 'white', strokeWidth: 2 }}
               isAnimationActive={false}
             />
-          </LineChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
     </section>

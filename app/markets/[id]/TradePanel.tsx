@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { priceYes, tradeCost, sellPayout } from '@/lib/lmsr'
+import { ChevronDown, TrendingUp } from 'lucide-react'
+import { priceYes, tradeCost, sellPayout, sharesForCost, sharesForSellPayout } from '@/lib/lmsr'
 import { executeTradeAction, sellSharesAction } from '@/app/actions/trade'
 import { formatCrowns } from '@/lib/format-crowns'
 import PricingInfoTooltip from './PricingInfoTooltip'
@@ -17,23 +18,48 @@ interface TradePanelProps {
   userNoShares: number
 }
 
+type AmountUnit = 'shares' | 'crowns'
+
+const MAX_SHARES = 100_000
+const SHARE_PRESETS = [1, 10, 25, 50, 100, 200]
+const CROWN_PRESETS = [10, 25, 50, 100]
+
 export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, userYesShares, userNoShares }: TradePanelProps) {
   const router = useRouter()
   const [mode, setMode] = useState<'buy' | 'sell'>('buy')
   const [side, setSide] = useState<'yes' | 'no'>('yes')
-  const [sharesInput, setSharesInput] = useState('10')
+  const [amountUnit, setAmountUnit] = useState<AmountUnit>('shares')
+  const [unitMenuOpen, setUnitMenuOpen] = useState(false)
+  const [amountInput, setAmountInput] = useState('10')
   const [isPending, startTransition] = useTransition()
   const [successInfo, setSuccessInfo] = useState<{ shares: number; side: string; cost: number; newCrowns: number; mode: 'buy' | 'sell' } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const MAX_SHARES = 100_000
-
   const holdingsForSide = side === 'yes' ? userYesShares : userNoShares
-  const shares = parseInt(sharesInput, 10)
+  const maxSellPayout = holdingsForSide > 0 ? sellPayout(qYes, qNo, b, side, holdingsForSide) : 0
+
+  const amount = amountUnit === 'shares' ? parseInt(amountInput, 10) : parseFloat(amountInput)
+
+  // Shares actually sent to the RPC. In crowns mode, the entered amount is a
+  // crowns budget/payout target — convert it via the LMSR inverse and floor,
+  // so the trade never costs more (or pays out for more shares) than the
+  // user asked for.
+  const rawShares =
+    !isNaN(amount) && amount > 0
+      ? amountUnit === 'shares'
+        ? amount
+        : Math.floor(
+            mode === 'buy'
+              ? sharesForCost(qYes, qNo, b, side, amount)
+              : sharesForSellPayout(qYes, qNo, b, side, amount),
+          )
+      : 0
+
   const exceedsMax =
-    (!isNaN(shares) && shares > MAX_SHARES) ||
-    (mode === 'sell' && !isNaN(shares) && shares > holdingsForSide)
-  const validShares = !isNaN(shares) && shares > 0 && !exceedsMax ? shares : 0
+    rawShares > MAX_SHARES ||
+    (mode === 'sell' && rawShares > holdingsForSide)
+  const validShares = rawShares > 0 && !exceedsMax ? rawShares : 0
+
   const currentYesPrice  = priceYes(qYes, qNo, b)
   const currentSidePrice = side === 'yes' ? currentYesPrice : 1 - currentYesPrice
   const previewCost =
@@ -54,6 +80,22 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
   const newSidePrice     = side === 'yes' ? newYesPrice : 1 - newYesPrice
   const potentialProfit  = validShares - previewCost
   const balanceAfter     = mode === 'buy' ? availableBalance - previewCost : availableBalance + previewCost
+
+  const maxAmount =
+    amountUnit === 'shares'
+      ? (mode === 'sell' ? Math.max(1, Math.floor(holdingsForSide)) : MAX_SHARES)
+      : (mode === 'sell' ? Math.max(1, Math.floor(maxSellPayout)) : Math.max(1, Math.floor(availableBalance)))
+  const presets = amountUnit === 'shares' ? SHARE_PRESETS : CROWN_PRESETS
+
+  function setAmount(n: number) {
+    setAmountInput(String(n))
+  }
+
+  function switchUnit(next: AmountUnit) {
+    setAmountUnit(next)
+    setAmountInput('10')
+    setUnitMenuOpen(false)
+  }
 
   function handleTrade() {
     if (validShares === 0) return
@@ -83,34 +125,22 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
   return (
     <section
       id="trade-ticket"
-      className="scroll-mt-20 rounded-2xl border border-border bg-card p-3.5 shadow-sm"
+      className="scroll-mt-20 rounded-2xl border border-border bg-card p-4 shadow-sm"
       aria-labelledby="trade-ticket-title"
     >
-      {/* Header */}
-      <div className="mb-3 flex items-center justify-between">
-        <h2 id="trade-ticket-title" className="font-display text-base font-semibold text-columbia-deep">
-          Trade ticket
-        </h2>
-        <div className="text-right">
-          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Available</p>
-          <p className="text-sm font-bold text-foreground">{formatCrowns(availableBalance)} ♛</p>
-        </div>
-      </div>
+      <h2 id="trade-ticket-title" className="sr-only">Trade ticket</h2>
 
-      {/* Buy / Sell toggle */}
-      <fieldset className="mb-3">
-        <legend className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Order type
-        </legend>
-        <div className="grid grid-cols-2 gap-2">
+      {/* Buy / Sell + amount-unit selector */}
+      <div className="mb-4 flex items-center justify-between gap-2 border-b border-border pb-3">
+        <div className="flex gap-2">
           <button
             type="button"
             aria-pressed={mode === 'buy'}
             onClick={() => setMode('buy')}
-            className={`pressable rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors duration-150 ease-out ${
+            className={`pressable rounded-xl px-4 py-1.5 text-sm font-bold transition-colors duration-150 ease-out ${
               mode === 'buy'
                 ? 'bg-columbia-deep text-primary-foreground shadow-sm'
-                : 'border border-border bg-background text-muted-foreground hover:border-columbia-deep'
+                : 'border border-border bg-background text-muted-foreground hover:border-columbia-deep hover:text-columbia-deep'
             }`}
           >
             Buy
@@ -119,135 +149,180 @@ export default function TradePanel({ marketId, qYes, qNo, b, availableBalance, u
             type="button"
             aria-pressed={mode === 'sell'}
             onClick={() => setMode('sell')}
-            className={`pressable rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors duration-150 ease-out ${
+            className={`pressable rounded-xl px-4 py-1.5 text-sm font-bold transition-colors duration-150 ease-out ${
               mode === 'sell'
                 ? 'bg-columbia-deep text-primary-foreground shadow-sm'
-                : 'border border-border bg-background text-muted-foreground hover:border-columbia-deep'
+                : 'border border-border bg-background text-muted-foreground hover:border-columbia-deep hover:text-columbia-deep'
             }`}
           >
             Sell
           </button>
         </div>
-      </fieldset>
 
-      {/* YES / NO toggle */}
-      <fieldset className="mb-3">
-        <legend className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Position
-        </legend>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="relative">
           <button
             type="button"
-            aria-pressed={side === 'yes'}
-            onClick={() => setSide('yes')}
-            className={`pressable rounded-xl border px-4 py-3 text-left transition-colors duration-150 ease-out ${
-              side === 'yes'
-                ? 'border-columbia bg-columbia text-primary-foreground ring-1 ring-columbia/50'
-                : 'border-columbia/20 bg-columbia-soft/60 text-columbia hover:border-columbia/60'
-            }`}
+            onClick={() => setUnitMenuOpen((v) => !v)}
+            className="pressable flex items-center gap-1 rounded-xl border border-border px-3 py-1.5 text-sm font-bold text-muted-foreground transition-colors hover:border-columbia hover:text-columbia"
           >
-            <span className="block text-xs font-bold uppercase tracking-widest">Yes</span>
-            <span className="font-display mt-1 block text-3xl font-extrabold">{Math.round(currentYesPrice * 100)}¢</span>
+            {amountUnit === 'shares' ? 'Shares' : 'Crowns'}
+            <ChevronDown className="h-3.5 w-3.5" strokeWidth={2} />
           </button>
-          <button
-            type="button"
-            aria-pressed={side === 'no'}
-            onClick={() => setSide('no')}
-            className={`pressable rounded-xl border px-4 py-3 text-left transition-colors duration-150 ease-out ${
-              side === 'no'
-                ? 'border-danger bg-danger text-white ring-1 ring-danger/50'
-                : 'border-danger/20 bg-danger/5 text-danger hover:border-danger/60'
-            }`}
-          >
-            <span className="block text-xs font-bold uppercase tracking-widest">No</span>
-            <span className="font-display mt-1 block text-3xl font-extrabold">{Math.round((1 - currentYesPrice) * 100)}¢</span>
-          </button>
+          {unitMenuOpen && (
+            <div className="absolute right-0 top-full z-10 mt-1 w-32 overflow-hidden rounded-lg border border-border bg-card shadow-md">
+              <button
+                type="button"
+                onClick={() => switchUnit('shares')}
+                className="block w-full px-3 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                Shares
+              </button>
+              <button
+                type="button"
+                onClick={() => switchUnit('crowns')}
+                className="block w-full px-3 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                Crowns ♛
+              </button>
+            </div>
+          )}
         </div>
-      </fieldset>
+      </div>
+
+      {/* Available balance */}
+      <div className="mb-3 flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">Available</span>
+        <span className="font-bold text-foreground">{formatCrowns(availableBalance)} ♛</span>
+      </div>
+
+      {/* YES / NO pills */}
+      <div className="mb-4 flex gap-2">
+        <button
+          type="button"
+          aria-pressed={side === 'yes'}
+          onClick={() => setSide('yes')}
+          className={`pressable flex-1 rounded-full border py-2.5 text-sm font-bold transition-colors duration-150 ease-out ${
+            side === 'yes'
+              ? 'border-columbia bg-columbia text-white'
+              : 'border-columbia/25 bg-columbia-soft/50 text-columbia hover:border-columbia/60'
+          }`}
+        >
+          YES {Math.round(currentYesPrice * 100)}¢
+        </button>
+        <button
+          type="button"
+          aria-pressed={side === 'no'}
+          onClick={() => setSide('no')}
+          className={`pressable flex-1 rounded-full border py-2.5 text-sm font-bold transition-colors duration-150 ease-out ${
+            side === 'no'
+              ? 'border-danger bg-danger text-white'
+              : 'border-danger/25 bg-danger/5 text-danger hover:border-danger/60'
+          }`}
+        >
+          NO {Math.round((1 - currentYesPrice) * 100)}¢
+        </button>
+      </div>
 
       {/* Quantity input */}
-      <div className="mb-3">
-        <label
-          className="mb-1.5 block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
-          htmlFor="shares-input"
-        >
-          Quantity
-        </label>
-        <div className={`flex min-h-9 items-center rounded-xl border bg-background transition-colors focus-within:border-columbia ${exceedsMax ? 'border-danger' : 'border-border'}`}>
-          <input
-            id="shares-input"
-            type="number"
-            min={1}
-            max={mode === 'sell' ? holdingsForSide : MAX_SHARES}
-            step={1}
-            inputMode="numeric"
-            value={sharesInput}
-            onChange={(e) => setSharesInput(e.target.value)}
-            className="min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold text-foreground outline-none"
-          />
-          <span className="border-l border-border px-3 text-xs font-medium text-muted-foreground">shares</span>
-        </div>
-        <div className="mt-1.5 flex gap-1.5">
-          {[1, 10, 25, 50].map((n) => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => setSharesInput(String(n))}
-              className="pressable flex-1 rounded-lg border border-border py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-columbia hover:text-columbia"
-            >
-              {n}
-            </button>
-          ))}
+      <div className="mb-4">
+        <div className="mb-1.5 flex items-center justify-between">
+          <label htmlFor="shares-input" className="text-xs font-semibold text-muted-foreground">
+            {amountUnit === 'shares' ? 'Shares' : 'Crowns'}
+          </label>
           <button
             type="button"
-            onClick={() => setSharesInput(String(mode === 'sell' ? holdingsForSide : MAX_SHARES))}
-            className="pressable flex-1 rounded-lg border border-border py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-columbia hover:text-columbia"
+            onClick={() => setAmount(maxAmount)}
+            className="pressable text-xs font-semibold text-columbia hover:underline"
           >
             Max
           </button>
         </div>
-        <p className="mt-1.5 rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-foreground">
-          You own <span className="font-display font-bold">{holdingsForSide.toFixed(0)}</span> {side.toUpperCase()} shares
+        <div className={`flex items-center rounded-xl border bg-background px-3.5 py-2.5 transition-colors focus-within:border-columbia ${exceedsMax ? 'border-danger' : 'border-border'}`}>
+          <input
+            id="shares-input"
+            type="number"
+            min={amountUnit === 'shares' ? 1 : 0.01}
+            max={maxAmount}
+            step={amountUnit === 'shares' ? 1 : 0.01}
+            inputMode="decimal"
+            value={amountInput}
+            onChange={(e) => setAmountInput(e.target.value)}
+            className="w-full bg-transparent text-right text-2xl font-bold text-foreground outline-none"
+          />
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {presets.map((n) => {
+            const isActive = !isNaN(amount) && amount === n
+            return (
+              <button
+                key={n}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => setAmount(n)}
+                className={`pressable rounded-full border px-3 py-1 text-[11px] font-semibold transition-colors ${
+                  isActive
+                    ? 'border-columbia bg-columbia text-white'
+                    : 'border-border text-muted-foreground hover:border-columbia hover:text-columbia'
+                }`}
+              >
+                {n}
+              </button>
+            )
+          })}
+        </div>
+
+        <p className="mt-1.5 text-[11px] text-muted-foreground">
+          You own {holdingsForSide.toFixed(0)} {side.toUpperCase()} shares
+          {amountUnit === 'crowns' && validShares > 0 && ` · ≈ ${validShares.toLocaleString()} shares`}
         </p>
-        {exceedsMax ? (
-          <p className="mt-1.5 text-xs font-medium text-danger">
-            {mode === 'sell' ? `Exceeds your position (${holdingsForSide.toFixed(0)} shares)` : 'Exceeds the 100,000 share limit'}
+        {exceedsMax && (
+          <p className="mt-1 text-xs font-medium text-danger">
+            {mode === 'sell'
+              ? `Exceeds your position (${holdingsForSide.toFixed(0)} shares${amountUnit === 'crowns' ? `, ≈ ${formatCrowns(maxSellPayout)} ♛ max` : ''})`
+              : `Exceeds the ${MAX_SHARES.toLocaleString()} share limit`}
           </p>
-        ) : (
-          <p className="mt-1.5 text-xs text-muted-foreground">Max 100,000 shares per trade</p>
         )}
       </div>
 
-      {/* Order summary */}
-      <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-        Cost &amp; payout
-        <PricingInfoTooltip />
-      </div>
-      <dl className="mb-3 divide-y divide-border rounded-xl border border-border text-sm">
-        {(mode === 'buy'
-          ? [
-              { label: 'Side',             value: `${side.toUpperCase()} @ ${Math.round(currentSidePrice * 100)}¢` },
-              { label: 'Cost',             value: `${formatCrowns(previewCost)} ♛` },
-              { label: 'New price',        value: `${Math.round(newSidePrice * 100)}¢` },
-              { label: 'Payout if wins',   value: `${formatCrowns(validShares)} ♛` },
-              { label: 'Potential profit', value: `+${formatCrowns(Math.max(0, potentialProfit))}`, green: true },
-              { label: 'Balance after',    value: formatCrowns(balanceAfter), red: balanceAfter < 0 },
-            ]
-          : [
-              { label: 'Side',          value: `${side.toUpperCase()} @ ${Math.round(currentSidePrice * 100)}¢` },
-              { label: 'Payout',        value: `${formatCrowns(previewCost)} ♛` },
-              { label: 'New price',     value: `${Math.round(newSidePrice * 100)}¢` },
-              { label: 'Balance after', value: formatCrowns(balanceAfter), red: balanceAfter < 0 },
-            ]
-        ).map(({ label, value, green, red }) => (
-          <div key={label} className="flex items-center justify-between px-3 py-2">
-            <dt className="text-muted-foreground">{label}</dt>
-            <dd className={`font-semibold ${green ? 'text-success' : red ? 'text-danger' : 'text-foreground'}`}>
-              {value}
-            </dd>
-          </div>
-        ))}
+      {/* Summary — plain rows, payout emphasized */}
+      <dl className="mb-3 space-y-2 text-sm">
+        <div className="flex items-center justify-between">
+          <dt className="text-muted-foreground">
+            Price <span className="text-muted-foreground/60">(now → after this trade)</span>
+          </dt>
+          <dd className="font-semibold text-foreground">
+            {Math.round(currentSidePrice * 100)}¢ → {Math.round(newSidePrice * 100)}¢
+          </dd>
+        </div>
+        <div className="flex items-center justify-between">
+          <dt className="flex items-center gap-1 text-muted-foreground">
+            {mode === 'buy' ? 'Cost' : 'Payout'}
+            <PricingInfoTooltip />
+          </dt>
+          <dd className="font-semibold text-foreground">{formatCrowns(previewCost)} ♛</dd>
+        </div>
+        <div className="flex items-center justify-between border-t border-border pt-2.5">
+          <dt className="text-muted-foreground">{mode === 'buy' ? 'Payout if wins' : 'You receive'}</dt>
+          <dd className="text-right">
+            <span className="font-display block text-xl font-bold text-foreground">
+              {formatCrowns(mode === 'buy' ? validShares : previewCost)} ♛
+            </span>
+          </dd>
+        </div>
       </dl>
+      {mode === 'buy' && potentialProfit > 0 && (
+        <div className="mb-3 flex justify-end">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-success/15 px-3 py-1.5 text-base font-bold text-success">
+            <TrendingUp className="h-4 w-4" strokeWidth={2.5} />
+            +{formatCrowns(potentialProfit)} ♛
+            {previewCost > 0 && ` (+${((potentialProfit / previewCost) * 100).toFixed(0)}%)`}
+          </span>
+        </div>
+      )}
+      <p className={`mb-3 text-sm font-semibold ${balanceAfter < 0 ? 'text-danger' : 'text-muted-foreground'}`}>
+        Balance after: {formatCrowns(balanceAfter)} ♛
+      </p>
 
       {/* Submit */}
       <button

@@ -76,3 +76,53 @@ export function sellPayout(
 ): number {
   return -tradeCost(qYes, qNo, b, side, -shares);
 }
+
+/**
+ * Inverse of tradeCost: given a crowns budget, returns how many shares of
+ * `side` that budget buys. Closed-form solve of C(after) = C(before) + cost
+ * for the new q value, reusing the same log-sum-exp shift `m` as cost():
+ *
+ *   exp(qYes/b) + exp(qNo/b) = exp((before+cost)/b)
+ *   => (dividing by exp(m), where m = max(qYes/b, qNo/b) as in cost())
+ *   exp(newQ/b - m) = exp((before+cost)/b - m) - exp(qOther/b - m)
+ *
+ * The subtracted term is always < the left side for cost > 0 (before/b - m
+ * is exactly ln of the two-term sum, which already includes qOther's term),
+ * so the ln() argument here is always positive — no extra guarding needed.
+ * Used client-side only, to convert a user's crowns-denominated input into
+ * the integer shares actually sent to execute_trade.
+ */
+export function sharesForCost(
+  qYes: number,
+  qNo: number,
+  b: number,
+  side: 'yes' | 'no',
+  targetCost: number,
+): number {
+  const a = qYes / b;
+  const c = qNo / b;
+  const m = Math.max(a, c);
+  const logSum = m + Math.log(Math.exp(a - m) + Math.exp(c - m)); // = cost(qYes,qNo,b) / b
+  const shiftedTarget = logSum - m + targetCost / b; // = (before + targetCost) / b - m
+  const otherShifted = side === 'yes' ? Math.exp(c - m) : Math.exp(a - m);
+  const newQShifted = Math.log(Math.exp(shiftedTarget) - otherShifted);
+  const newQ = b * (m + newQShifted);
+  return side === 'yes' ? newQ - qYes : newQ - qNo;
+}
+
+/**
+ * Inverse of sellPayout: given a target crowns payout, returns how many
+ * shares of `side` must be sold to receive it. Reuses sharesForCost via the
+ * same negation identity sellPayout uses: selling `s` shares for payout `P`
+ * is equivalent to "buying -s shares costs -P", so
+ * sharesForCost(..., -P) solves for -s directly.
+ */
+export function sharesForSellPayout(
+  qYes: number,
+  qNo: number,
+  b: number,
+  side: 'yes' | 'no',
+  targetPayout: number,
+): number {
+  return -sharesForCost(qYes, qNo, b, side, -targetPayout);
+}
