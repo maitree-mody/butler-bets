@@ -7,6 +7,7 @@ import Badge from '@/app/components/ui/Badge'
 import IconStat from '@/app/components/ui/IconStat'
 import { priceYes } from '@/lib/lmsr'
 import { inferCategory } from '@/lib/category'
+import { isMarketOpen } from '@/lib/time'
 import { displayNameFromEmail } from '@/lib/display-name'
 import { formatCrowns, formatCrownsSigned } from '@/lib/format-crowns'
 import EditDisplayNameToggle from './EditDisplayNameToggle'
@@ -31,6 +32,7 @@ type PositionRow = {
     id: string
     question: string
     status: string
+    closes_at: string
     q_yes: number
     q_no: number
     b: number
@@ -73,7 +75,8 @@ export default async function ProfilePage() {
   const distinctMarkets = new Set(trades.map(t => t.market_id)).size
   const openPositions = positions.filter(
     p =>
-      p.markets?.status === 'open' &&
+      p.markets != null &&
+      isMarketOpen(p.markets.status, p.markets.closes_at) &&
       (Number(p.yes_shares) > 0 || Number(p.no_shares) > 0),
   )
   const recentTrades = trades.slice(0, 15)

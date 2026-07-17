@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { priceYes } from '@/lib/lmsr'
 import { inferCategory } from '@/lib/category'
+import { isMarketOpen } from '@/lib/time'
 
 type MarketCardProps = {
-  market: { id: string; question: string; status: string; q_yes: number; q_no: number; b: number }
+  market: { id: string; question: string; status: string; closes_at: string; q_yes: number; q_no: number; b: number }
   recentTrades: number
 }
 
@@ -11,7 +12,7 @@ export default function MarketCard({ market, recentTrades }: MarketCardProps) {
   const yesProb = priceYes(Number(market.q_yes), Number(market.q_no), Number(market.b))
   const yesPct = Math.round(yesProb * 100)
   const noPct = 100 - yesPct
-  const isOpen = market.status === 'open'
+  const isOpen = isMarketOpen(market.status, market.closes_at)
   const cat = inferCategory(market.question)
   const trend: 'up' | 'down' = yesPct >= 50 ? 'up' : 'down'
   const tradesLabel = recentTrades >= 1000
